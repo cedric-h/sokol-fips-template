@@ -11,11 +11,17 @@ void main() {
 @end
 
 @fs fs
+layout(binding=0) uniform texture2D triangle_tex;
+layout(binding=0) uniform sampler triangle_smp;
+
 in vec4 color;
 out vec4 frag_color;
 
 void main() {
-    frag_color = color;
+    frag_color = texture(
+        sampler2D(triangle_tex,triangle_smp),
+        color.xy
+    ) * color;
 }
 @end
 
