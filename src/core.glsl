@@ -17,8 +17,8 @@ void main() {
 @end
 
 @fs fs
-layout(binding=0) uniform texture2D triangle_tex;
-layout(binding=0) uniform sampler triangle_smp;
+layout(binding=0) uniform texture2D font_tex;
+layout(binding=0) uniform sampler font_smp;
 
 in vec4 color;
 in vec2 uv;
@@ -27,7 +27,7 @@ out vec4 frag_color;
 
 void main() {
     float dist = texture(
-        sampler2D(triangle_tex, triangle_smp),
+        sampler2D(font_tex, font_smp),
         vec2(uv.x, uv.y)
     ).r;
 
@@ -42,4 +42,4 @@ void main() {
 }
 @end
 
-@program triangle vs fs
+@program core vs fs

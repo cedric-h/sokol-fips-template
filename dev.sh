@@ -1,3 +1,3 @@
 find ./src | \
     grep -E "[^.swp|.o|.d|.DS_Store]$" | \
-    entr -rs './fips make eab && ./fips run eab'
+    entr -rs './fips make eab && ./fips make eab && ./fips run eab'

@@ -70,7 +70,7 @@ fips_begin_lib(sokol)
 fips_end_lib()
 
 fips_begin_app(eab windowed)
-    sokol_shader(src/triangle.glsl ${slang})
+    sokol_shader(src/core.glsl ${slang})
     fips_files(src/main.c)
     fips_deps(sokol)
 fips_end_app(eab windowed)
