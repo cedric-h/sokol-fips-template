@@ -56,10 +56,12 @@ static void cleanup(void) {
 static void input(const sapp_event* ev) {
     switch (ev->type) {
         case SAPP_EVENTTYPE_KEY_DOWN: {
+#ifdef __APPLE__
             if (ev->key_code == SAPP_KEYCODE_Q &&
                 (ev->modifiers & SAPP_MODIFIER_SUPER)
             )
                 sapp_request_quit();
+#endif
         } break;
 
         default: break;
