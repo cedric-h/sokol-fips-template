@@ -18,8 +18,8 @@ static void init(void) {
 
     float vertices[] = {
          0.0f,  0.5f, 0.5f,     1.0f, 0.0f, 0.0f, 1.0f,
-         0.5f, -0.5f, 0.5f,     0.0f, 1.0f, 0.0f, 1.0f,
-        -0.5f, -0.5f, 0.5f,     0.0f, 0.0f, 1.0f, 1.0f
+         0.5f, -0.5f, 0.5f,     1.0f, 0.0f, 0.0f, 1.0f,
+        -0.5f, -0.5f, 0.5f,     1.0f, 0.0f, 1.0f, 1.0f
     };
     state.bind.vertex_buffers[0] = sg_make_buffer(&(sg_buffer_desc){
         .data = SG_RANGE(vertices),
@@ -40,7 +40,7 @@ static void init(void) {
     };
 }
 
-void frame(void) {
+static void frame(void) {
     sg_begin_pass(&(sg_pass){ .action = state.pass_action, .swapchain = sglue_swapchain() });
     sg_apply_pipeline(state.pip);
     sg_apply_bindings(&state.bind);
@@ -49,8 +49,21 @@ void frame(void) {
     sg_commit();
 }
 
-void cleanup(void) {
+static void cleanup(void) {
     sg_shutdown();
+}
+
+static void input(const sapp_event* ev) {
+    switch (ev->type) {
+        case SAPP_EVENTTYPE_KEY_DOWN: {
+            if (ev->key_code == SAPP_KEYCODE_Q &&
+                (ev->modifiers & SAPP_MODIFIER_SUPER)
+            )
+                sapp_request_quit();
+        } break;
+
+        default: break;
+    }
 }
 
 sapp_desc sokol_main(int argc, char* argv[]) {
@@ -59,6 +72,7 @@ sapp_desc sokol_main(int argc, char* argv[]) {
         .init_cb = init,
         .frame_cb = frame,
         .cleanup_cb = cleanup,
+        .event_cb = input,
         .width = 640,
         .height = 480,
         .window_title = "Triangle",
