@@ -1,12 +1,18 @@
 @vs vs
-in vec4 position;
+in vec2 pos0;
+in vec2 uv0;
 in vec4 color0;
+in float size0;
 
 out vec4 color;
+out vec2 uv;
+out float size;
 
 void main() {
-    gl_Position = position;
+    gl_Position = vec4(pos0, 0.0, 1.0);
     color = color0;
+    uv = uv0;
+    size = size0;
 }
 @end
 
@@ -15,13 +21,24 @@ layout(binding=0) uniform texture2D triangle_tex;
 layout(binding=0) uniform sampler triangle_smp;
 
 in vec4 color;
+in vec2 uv;
+in float size;
 out vec4 frag_color;
 
 void main() {
-    frag_color = texture(
-        sampler2D(triangle_tex,triangle_smp),
-        color.xy
-    ) * color;
+    float dist = texture(
+        sampler2D(triangle_tex, triangle_smp),
+        vec2(uv.x, uv.y)
+    ).r;
+
+    dist = pow(abs(dist), 2.2);
+
+    float dbuffer = 0.5f;
+
+    float raw_gamma = 2.0f * 1.4142;
+    float gamma = raw_gamma / size;
+    float alpha = smoothstep(dbuffer - gamma, dbuffer + gamma, dist);
+    frag_color = color * color.a * alpha; 
 }
 @end
 
