@@ -20,6 +20,19 @@ view_Transition view_options_update(uint64_t _) {
 static Clay_RenderCommandArray ui_create_layout(void);
 void view_options_render(void) {
     draw_frame_start((Color) { 255, 255, 255, 255 });
+
+    draw_geo_tex(
+        draw_geo_default(),
+        tex_init(""),
+        (draw_Rect) {
+            .min_x = 50,
+            .min_y = 50,
+            .max_x = 250,
+            .max_y = 250,
+        },
+        (Color) { 255,   5,   5, 255 }
+    );
+
     ui_render(ui_create_layout(), draw_geo_default());
     draw_frame_end();
 }

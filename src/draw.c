@@ -98,7 +98,7 @@ void draw_geo_line(
     float ny =  dx / dlen * thickness*0.5;
 
     draw_Idx i = draw_geo_vtx_count(g);
-    draw_Vtx_Bytes by = { .variant = 1 };
+    draw_Vtx_Bytes by = { .variant = draw_ShaderVariant_Solid };
     *g->vtx_wtr++ = (draw_Vtx) { draw_screen_to_gl((f2){ a.x - nx, a.y - ny }), {}, color, by };
     *g->vtx_wtr++ = (draw_Vtx) { draw_screen_to_gl((f2){ a.x + nx, a.y + ny }), {}, color, by };
     *g->vtx_wtr++ = (draw_Vtx) { draw_screen_to_gl((f2){ b.x - nx, b.y - ny }), {}, color, by };
@@ -109,6 +109,37 @@ void draw_geo_line(
     *g->idx_wtr++ = i + 2;
     *g->idx_wtr++ = i + 2;
     *g->idx_wtr++ = i + 1;
+    *g->idx_wtr++ = i + 3;
+}
+
+void draw_geo_tex(
+    draw_Geo *g,
+    tex_Tex tex,
+    draw_Rect r,
+    Color color
+) {
+    draw_geo_ensure_can_hold_rects(g, 1);
+
+    float min_uv_x = 0.0f;
+    float min_uv_y = 0.0f;
+    float max_uv_x = 1.0f;
+    float max_uv_y = 1.0f;
+
+    draw_Vtx_Bytes b = {
+        .variant = draw_ShaderVariant_Solid,
+    };
+
+    draw_Idx i = draw_geo_vtx_count(g);
+    *g->vtx_wtr++ = (draw_Vtx) { { r.min_x, r.min_y }, { min_uv_x, min_uv_y }, color, b };
+    *g->vtx_wtr++ = (draw_Vtx) { { r.max_x, r.max_y }, { max_uv_x, max_uv_y }, color, b };
+    *g->vtx_wtr++ = (draw_Vtx) { { r.min_x, r.max_y }, { min_uv_x, max_uv_y }, color, b };
+    *g->vtx_wtr++ = (draw_Vtx) { { r.max_x, r.min_y }, { max_uv_x, min_uv_y }, color, b };
+
+    *g->idx_wtr++ = i + 0;
+    *g->idx_wtr++ = i + 1;
+    *g->idx_wtr++ = i + 2;
+    *g->idx_wtr++ = i + 1;
+    *g->idx_wtr++ = i + 0;
     *g->idx_wtr++ = i + 3;
 }
 
@@ -153,7 +184,7 @@ void draw_geo_str_ui(
 
         draw_Idx i = draw_geo_vtx_count(g);
         draw_Vtx_Bytes b = {
-            .variant = 0,
+            .variant = draw_ShaderVariant_Font,
             .byte1 = (uint8_t)size /* "byte1" is used as size in font shader */
         };
         *g->vtx_wtr++ = (draw_Vtx) { { min_pos.x, min_pos.y }, { min_uv_x, min_uv_y }, color, b };
@@ -274,14 +305,6 @@ void draw_init(void) {
 
 void draw_free(void) {
     sg_shutdown();
-}
-
-void draw_geo_tex(
-    draw_Geo *geo,
-    tex_Tex tex,
-    draw_Rect rect,
-    Color color
-) {
 }
 
 void draw_geo_draw(draw_Geo *g) {

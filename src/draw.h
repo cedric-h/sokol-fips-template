@@ -14,8 +14,15 @@ void draw_frame_start(Color bg);
 void draw_frame_end(void);
 
 typedef uint16_t draw_Idx;
+typedef uint8_t draw_ShaderVariant;
+enum {
+    draw_ShaderVariant_Font = 0,
+    draw_ShaderVariant_Solid = 1,
+    draw_ShaderVariant_Tex = 2,
+};
 typedef struct {
-    uint8_t variant, byte1, byte2, byte3;
+    draw_ShaderVariant variant;
+    uint8_t byte1, byte2, byte3;
 } draw_Vtx_Bytes;
 typedef struct {
     f2 pos, uv;

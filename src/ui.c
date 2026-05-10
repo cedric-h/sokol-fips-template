@@ -932,7 +932,12 @@ static void ui_render_cmds(Clay_RenderCommandArray render_cmds, draw_Geo *geo) {
             case CLAY_RENDER_COMMAND_TYPE_BORDER: {
 
                 Clay_BorderRenderData *config = &cmd->renderData.border;
-                Color c = (Color) { config->color.r, config->color.g, config->color.b, config->color.a };
+                Color c = (Color) {
+                    config->color.r,
+                    config->color.g,
+                    config->color.b,
+                    config->color.a
+                };
 
                 if (config->width.left > 0)
                     draw_geo_line(
