@@ -1,13 +1,16 @@
 #ifndef __EAB_DRAW_IMPL
 #define __EAB_DRAW_IMPL
+
 #include "base.h"
+#include "tex.h"
+
 #ifndef SOKOL_GFX_INCLUDED
 typedef struct { uint32_t id; } sg_buffer;
 #endif
 
 void draw_init(void);
 void draw_free(void);
-void draw_frame_start(void);
+void draw_frame_start(Color bg);
 void draw_frame_end(void);
 
 typedef uint16_t draw_Idx;
@@ -30,6 +33,8 @@ typedef struct {
     size_t idx_cap;
 } draw_Geo;
 
+draw_Geo *draw_geo_default(void);
+
 void draw_geo_reset(draw_Geo *g);
 void draw_geo_init(draw_Geo *g, size_t rect_count);
 void draw_geo_draw(draw_Geo *g);
@@ -45,6 +50,14 @@ draw_TextSize draw_measure_str(
     char *str,
     size_t n_chars,
     uint8_t size
+);
+
+typedef struct { float min_x, min_y, max_x, max_y; } draw_Rect;
+void draw_geo_tex(
+    draw_Geo *geo,
+    tex_Tex tex,
+    draw_Rect rect,
+    Color color
 );
 
 void draw_geo_str(

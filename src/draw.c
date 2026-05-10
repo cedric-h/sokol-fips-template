@@ -11,8 +11,8 @@
 
 static f2 draw_screen_to_gl(f2 pos) {
     return (f2) {
-        .x = 2.0f*(pos.x / sapp_widthf() ) - 1.0f,
-        .y = 2.0f*(pos.y / sapp_heightf()) - 1.0f,
+        .x = 2.0f*(pos.x / (sapp_widthf()  / sapp_dpi_scale())) - 1.0f,
+        .y = 2.0f*(pos.y / (sapp_heightf() / sapp_dpi_scale())) - 1.0f,
     };
 }
 
@@ -99,10 +99,10 @@ void draw_geo_line(
 
     draw_Idx i = draw_geo_vtx_count(g);
     draw_Vtx_Bytes by = { .variant = 1 };
-    *g->vtx_wtr++ = (draw_Vtx) { draw_screen_to_gl((f2){ a.x + nx, a.y - ny }), {}, color, by };
-    *g->vtx_wtr++ = (draw_Vtx) { draw_screen_to_gl((f2){ a.x - nx, a.y + ny }), {}, color, by };
-    *g->vtx_wtr++ = (draw_Vtx) { draw_screen_to_gl((f2){ b.x + nx, b.y - ny }), {}, color, by };
-    *g->vtx_wtr++ = (draw_Vtx) { draw_screen_to_gl((f2){ b.x - nx, b.y + ny }), {}, color, by };
+    *g->vtx_wtr++ = (draw_Vtx) { draw_screen_to_gl((f2){ a.x - nx, a.y - ny }), {}, color, by };
+    *g->vtx_wtr++ = (draw_Vtx) { draw_screen_to_gl((f2){ a.x + nx, a.y + ny }), {}, color, by };
+    *g->vtx_wtr++ = (draw_Vtx) { draw_screen_to_gl((f2){ b.x - nx, b.y - ny }), {}, color, by };
+    *g->vtx_wtr++ = (draw_Vtx) { draw_screen_to_gl((f2){ b.x + nx, b.y + ny }), {}, color, by };
 
     *g->idx_wtr++ = i + 0;
     *g->idx_wtr++ = i + 1;
@@ -141,11 +141,12 @@ void draw_geo_str_ui(
         float max_uv_x = (l->x + l->size_x) / (float)font_TEX_SIZE_X;
         float max_uv_y = (l->y + l->size_y) / (float)font_TEX_SIZE_Y;
 
+        float x = pen_x;
         float y = pos.y;
-        float min_px_x = pen_x + 0;
-        float min_px_y =     y + 0;
-        float max_px_x = pen_x + l->size_x*scale;
-        float max_px_y =     y + l->size_y*scale;
+        float min_px_x = x + 0;
+        float min_px_y = y + 0;
+        float max_px_x = x + l->size_x*scale;
+        float max_px_y = y + l->size_y*scale;
 
         f2 min_pos = draw_screen_to_gl((f2) { min_px_x, min_px_y });
         f2 max_pos = draw_screen_to_gl((f2) { max_px_x, max_px_y });
@@ -159,64 +160,6 @@ void draw_geo_str_ui(
         *g->vtx_wtr++ = (draw_Vtx) { { max_pos.x, max_pos.y }, { max_uv_x, max_uv_y }, color, b };
         *g->vtx_wtr++ = (draw_Vtx) { { min_pos.x, max_pos.y }, { min_uv_x, max_uv_y }, color, b };
         *g->vtx_wtr++ = (draw_Vtx) { { max_pos.x, min_pos.y }, { max_uv_x, min_uv_y }, color, b };
-
-        *g->idx_wtr++ = i + 0;
-        *g->idx_wtr++ = i + 1;
-        *g->idx_wtr++ = i + 2;
-        *g->idx_wtr++ = i + 1;
-        *g->idx_wtr++ = i + 0;
-        *g->idx_wtr++ = i + 3;
-
-        pen_x += l->advance * scale;
-    }
-}
-
-void draw_geo_str(
-    draw_Geo *g,
-    f2 pos,
-    char *str,
-    uint8_t size,
-    Color color
-) {
-
-    float pen_x = pos.x;
-    for (char *c = str; *c; c++) {
-
-        draw_geo_ensure_can_hold_rects(g, 1);
-
-        /* this is a caps-only font, so atlas only has lowercase */
-        size_t char_idx = *c | (1 << 5);
-        font_LetterRegion *l = &font_letter_regions[char_idx];
-        float scale = (float)size / font_BASE_CHAR_SIZE;
-
-        if (l->size_x == 0 || l->size_y == 0 || *c == ' ') {
-            pen_x += l->advance * scale;
-            continue;
-        }
-
-        float min_uv_x = (l->x            ) / (float)font_TEX_SIZE_X;
-        float min_uv_y = (l->y            ) / (float)font_TEX_SIZE_Y;
-        float max_uv_x = (l->x + l->size_x) / (float)font_TEX_SIZE_X;
-        float max_uv_y = (l->y + l->size_y) / (float)font_TEX_SIZE_Y;
-
-        float y = pos.y + l->top * scale;
-        float min_px_x = pen_x + 0;
-        float min_px_y =     y + 0;
-        float max_px_x = pen_x + l->size_x*scale;
-        float max_px_y =     y + l->size_y*scale;
-
-        f2 min_pos = draw_screen_to_gl((f2) { min_px_x, min_px_y });
-        f2 max_pos = draw_screen_to_gl((f2) { max_px_x, max_px_y });
-
-        draw_Idx i = draw_geo_vtx_count(g);
-        draw_Vtx_Bytes b = {
-            .variant = 0,
-            .byte1 = (uint8_t)size /* "byte1" is used as size in font shader */
-        };
-        *g->vtx_wtr++ = (draw_Vtx) { { min_pos.x, max_pos.y }, { min_uv_x, min_uv_y }, color, b };
-        *g->vtx_wtr++ = (draw_Vtx) { { max_pos.x, min_pos.y }, { max_uv_x, max_uv_y }, color, b };
-        *g->vtx_wtr++ = (draw_Vtx) { { min_pos.x, min_pos.y }, { min_uv_x, max_uv_y }, color, b };
-        *g->vtx_wtr++ = (draw_Vtx) { { max_pos.x, max_pos.y }, { max_uv_x, min_uv_y }, color, b };
 
         *g->idx_wtr++ = i + 0;
         *g->idx_wtr++ = i + 1;
@@ -253,11 +196,16 @@ draw_TextSize draw_measure_str(
 
 static struct {
     sg_pipeline pip;
-    sg_pass_action pass_action;
 
     sg_view font_tex;
     sg_sampler font_smp;
+
+    draw_Geo geo_default;
 } draw;
+
+draw_Geo *draw_geo_default(void) {
+    return &draw.geo_default;
+}
 
 void draw_init(void) {
     sg_setup(&(sg_desc){
@@ -321,16 +269,19 @@ void draw_init(void) {
         },
     });
 
-    draw.pass_action = (sg_pass_action) {
-        .colors[0] = {
-            .load_action = SG_LOADACTION_CLEAR,
-            .clear_value = { 1.0f, 1.0f, 1.0f, 1.0f }
-        }
-    };
+    draw_geo_init(&draw.geo_default, 1 << 12);
 }
 
 void draw_free(void) {
     sg_shutdown();
+}
+
+void draw_geo_tex(
+    draw_Geo *geo,
+    tex_Tex tex,
+    draw_Rect rect,
+    Color color
+) {
 }
 
 void draw_geo_draw(draw_Geo *g) {
@@ -345,15 +296,28 @@ void draw_geo_draw(draw_Geo *g) {
     sg_draw(0, draw_geo_idx_count(g), 1);
 }
 
-void draw_frame_start(void) {
-
+void draw_frame_start(Color bg) {
     sg_begin_pass(&(sg_pass){
-        .action = draw.pass_action,
+        .action = (sg_pass_action) {
+            .colors[0] = {
+                .load_action = SG_LOADACTION_CLEAR,
+                .clear_value = {
+                    (float)bg.r / 255.0f,
+                    (float)bg.g / 255.0f,
+                    (float)bg.b / 255.0f,
+                    (float)bg.a / 255.0f,
+                }
+            }
+        },
         .swapchain = sglue_swapchain()
     });
     sg_apply_pipeline(draw.pip);
+
+    draw_geo_reset(&draw.geo_default);
 }
+
 void draw_frame_end(void) {
+    draw_geo_draw(&draw.geo_default);
     sg_end_pass();
     sg_commit();
 }

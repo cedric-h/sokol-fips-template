@@ -8,9 +8,9 @@ float randf(void);
 uint32_t rand_bits(void);
 float gaussian_randf(float mean, float stddev);
 int gaussian_rand(float mean, float stddev);
-#endif
 
 #ifdef __EAB_RAND_IMPL
+#include <math.h>
 static uint64_t rand_state;
 static bool rand_initialized = false;
 
@@ -76,7 +76,7 @@ void rand_seed(uint64_t seed) {
 
 int32_t rand_int(int32_t n) {
     if (!rand_initialized) {
-        srand(0);
+        rand_seed(0);
     }
 
     return __rand_r(&rand_state, n);
@@ -84,7 +84,7 @@ int32_t rand_int(int32_t n) {
 
 float randf(void) {
     if (!rand_initialized) {
-        srand(0);
+        rand_seed(0);
     }
 
     return __randf_r(&rand_state);
@@ -92,7 +92,7 @@ float randf(void) {
 
 uint32_t rand_bits(void) {
     if (!rand_initialized) {
-        srand(0);
+        rand_seed(0);
     }
 
     return __rand_bits_r(&rand_state);
@@ -104,7 +104,7 @@ float gaussian_randf(float mean, float stddev) {
 
 	/* avoid log(0) */
 	if (u1 == 0) {
-		u1 = FLT_MIN;
+		u1 = 0.00000000001;
 	}
 
 	float z0 = sqrtf(-2*logf(u1)) * cosf(2*M_PI*u2);
@@ -114,4 +114,5 @@ int gaussian_rand(float mean, float stddev) {
     return roundf(gaussian_randf(mean, stddev));
 }
 
+#endif
 #endif

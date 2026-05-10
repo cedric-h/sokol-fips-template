@@ -1,4 +1,5 @@
 // VERSION: 0.14
+#include "tex.h" // tex_Tex
 
 /*
     NOTE: In order to use this library you must define
@@ -423,7 +424,7 @@ CLAY__WRAPPER_STRUCT(Clay_AspectRatioElementConfig);
 
 // Controls various settings related to image elements.
 typedef struct Clay_ImageElementConfig {
-    void* imageData; // A transparent pointer used to pass image data through to the renderer.
+    tex_Tex imageData; // A transparent pointer used to pass image data through to the renderer.
 } Clay_ImageElementConfig;
 
 CLAY__WRAPPER_STRUCT(Clay_ImageElementConfig);
@@ -678,7 +679,7 @@ typedef struct Clay_ImageRenderData {
     // The rounding is determined by drawing a circle inset into the element corner by (radius, radius) pixels.
     Clay_CornerRadius cornerRadius;
     // A pointer transparently passed through from the original element definition, typically used to represent image data.
-    void* imageData;
+    tex_Tex imageData;
 } Clay_ImageRenderData;
 
 // Render command data when commandType == CLAY_RENDER_COMMAND_TYPE_CUSTOM
@@ -2993,7 +2994,7 @@ void Clay__CalculateFinalLayout(float deltaTime, bool useStoredBoundingBoxes, bo
                         };
                         Clay__AddRenderCommand(renderCommand);
                     }
-                    if (currentElement->config.image.imageData) {
+                    if (currentElement->config.image.imageData.id) {
                         Clay_RenderCommand renderCommand = {
                             .boundingBox = currentElementBoundingBox,
                             .renderData = {
@@ -3338,7 +3339,7 @@ Clay__RenderDebugLayoutData Clay__RenderDebugLayoutElementsList(int32_t initialR
                         Clay__DebugElementConfigTypeLabelConfig config = Clay__DebugGetElementConfigTypeLabel(CLAY__ELEMENT_CONFIG_TYPE_ASPECT);
                         Clay__RenderElementConfigTypeLabel(config.label, config.color, offscreen);
                     }
-                    if (currentElement->config.image.imageData) {
+                    if (currentElement->config.image.imageData.id) {
                         Clay__DebugElementConfigTypeLabelConfig config = Clay__DebugGetElementConfigTypeLabel(CLAY__ELEMENT_CONFIG_TYPE_IMAGE);
                         Clay__RenderElementConfigTypeLabel(config.label, config.color, offscreen);
                     }
@@ -3747,7 +3748,7 @@ void Clay__RenderDebugView(void) {
                             }
                         }
                     }
-                    if (selectedItem->layoutElement->config.image.imageData) {
+                    if (selectedItem->layoutElement->config.image.imageData.id) {
                         Clay_ImageElementConfig *imageConfig = &selectedItem->layoutElement->config.image;
                         Clay_AspectRatioElementConfig aspectConfig = { 1 };
                         if (selectedItem->layoutElement->config.aspectRatio.aspectRatio > 0) {

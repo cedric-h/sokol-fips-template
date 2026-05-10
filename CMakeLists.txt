@@ -72,7 +72,16 @@ fips_end_lib()
 fips_begin_app(eab windowed)
     sokol_shader(src/core.glsl ${slang})
     fips_files(src/main.c)
-    fips_files(src/draw.c)
     fips_files(src/ui.c)
+    fips_files(src/clay.c)
+    fips_files(src/guy.c)
+    fips_files(src/save.c)
+
+    fips_files(src/draw.c)
+    fips_files(src/sound.c)
+    fips_files(src/tex.c)
+
+    fips_files(src/view_options.c)
+
     fips_deps(sokol)
 fips_end_app(eab windowed)

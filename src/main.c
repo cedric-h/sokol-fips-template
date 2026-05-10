@@ -5,104 +5,136 @@
 #include <stdio.h>
 
 #define __EAB_RAND_IMPL
+#include "rand.h"
 
 #include "base.h"
+#define VIEW_HANDLERS
+#include "view.h"
 #include "draw.h"
 #include "ui.h"
 
 static struct {
+    View view;
+    uint64_t update_count;
     uint64_t start;
-    draw_Geo geo;
-} eng = {0};
+} game = {0};
+
+float base_screen_size_x(void) { return sapp_widthf () / sapp_dpi_scale(); }
+float base_screen_size_y(void) { return sapp_heightf() / sapp_dpi_scale(); }
+double base_play_duration(void) { return stm_sec(stm_since(game.start)); }
+void base_set_mouse_cursor(base_MouseCursor c) { return; }
+float base_delta_time(void) { return 1.0f / 60.0f; }
 
 static void init(void) {
     stm_setup();
+    game.start = stm_now();
+
     draw_init();
     ui_init();
+    guy_system_init();
 
-    eng.start = stm_now();
-
-    draw_geo_init(&eng.geo, 10);
-}
-
-static Clay_RenderCommandArray ui_create_layout(void) {
-    Clay_BeginLayout();
-
-    CLAY(CLAY_ID("OuterContainer"), {
-        .layout = {
-            .layoutDirection = CLAY_TOP_TO_BOTTOM,
-            .sizing = {
-                .width = CLAY_SIZING_GROW(0),
-                .height = CLAY_SIZING_GROW(0)
-            },
-            .padding = { 32, 32, 32, 32 },
-            .childGap = 16,
-        },
-        .backgroundColor = {0}
-    }) {
-
-        CLAY(CLAY_ID("title"), {
-            .layout = {
-                .padding = { 0, 0, 0, 24 },
-            }
-        }) {
-
-            CLAY_TEXT(
-                CLAY_STRING("options"),
-                (Clay_TextElementConfig){
-                    .textColor = { 0, 0, 0, 255 },
-                    .fontSize = 70,
-                },
-            );
-        }
-
-    }
-
-    return Clay_EndLayout(0);
-}
-
-static void frame(void) {
-    draw_frame_start();
-
-    {
-        draw_geo_reset(&eng.geo);
-        ui_update();
-        ui_render(ui_create_layout(), &eng.geo);
-
-        // float size = 48.0f * (1.5f + sinf(
-        //     stm_sec(stm_since(eng.start))
-        // ));
-        // draw_geo_str(
-        //     &eng.geo,
-        //     (f2) {0},
-        //     "quick brown",
-        //     size,
-        //     (Color) { 0, 0, 0, 255 }
-        // );
-        // draw_geo_line(
-        //     &eng.geo,
-        //     (f2) { 100 + -50, 100 + -50 },
-        //     (f2) { 100 +  50, 100 +  50 },
-        //     15.0f,
-        //     (Color) { 155, 20, 20, 255 }
-        // );
-        // draw_geo_line(
-        //     &eng.geo,
-        //     (f2) { 100 +  50, 100 + -50 },
-        //     (f2) { 100 + -50, 100 +  50 },
-        //     15.0f,
-        //     (Color) { 155, 20, 20, 255 }
-        // );
-        draw_geo_draw(&eng.geo);
-    }
-
-    draw_frame_end();
+    game.view = View_Options;
+    // save.run.coin = 185;
+    // save.run.furniture[0] = save_Furniture_Bed;
+    // {
+    //     guy_Guy mom = guy_from_race(guy_Race_Moai, guy_Sex_Female);
+    //     guy_Guy dad = guy_from_race(guy_Race_Moai, guy_Sex_Male);
+    //     for (int i = 0; i < 30; i++)
+    //         save.run.guys[i] = guy_from_parents(&mom, &dad);
+    // }
+    // save.run.biome = save_Biome_Desert;
+    view_handlers[game.view].init((view_Transition) {
+        .battle.steps_from_root = 15
+    });
 }
 
 static void cleanup(void) {
-    draw_free();
+    view_handlers[game.view].free();
+
     ui_free();
+    guy_system_free();
+
+    draw_free();
 }
+
+static void frame(void) {
+    game.update_count += 1;
+
+    view_Transition transition = { 0 };
+
+start:
+    transition = view_handlers[game.view].update(game.update_count);
+    transition.update = game.update_count;
+    if (transition.kind != view_TransitionKind_NONE) {
+        view_handlers[game.view].free();
+
+        // switch (transition.kind) {
+        //     case view_TransitionKind_NONE: assert(false); break;
+
+        //     case view_TransitionKind_Title: game.view = View_Title; break;
+        //     case view_TransitionKind_Options: game.view = View_Options; break;
+        //     case view_TransitionKind_CampTech: game.view = View_CampTech; break;
+
+        //     case view_TransitionKind_StartRun: {
+        //         uint32_t run_id = save.run.id;
+        //         memset(&save.run, 0, sizeof(save.run));
+        //         save.run.id = run_id + 1;
+        //         save.run.coin = 0;
+        //         save.run.food = 10;
+
+        //         // save.run.furniture[0] = save_Furniture_Telescope;
+
+        //         for (int i = 0; i < 3; i++) {
+        //             guy_Race race = guy_Race_Human;
+        //             guy_Sex sex = i%2 ? guy_Sex_Male : guy_Sex_Female;
+        //             save.run.guys[i] = guy_from_race(race, sex);
+        //         }
+
+        //         game.view = View_WorldMap;
+        //     } break;
+
+        //     case view_TransitionKind_StartPocketCamp:
+        //     case view_TransitionKind_StartCamp: {
+        //         game.view = View_Camp;
+        //     } break;
+        //     case view_TransitionKind_StartBattle: {
+        //         game.view = View_Battle;
+        //     } break;
+
+        //     case view_TransitionKind_BattleDefeat: { 
+        //         game.view = View_BattleDefeat;
+        //     } break;
+
+        //     case view_TransitionKind_BattleVictory: { 
+        //         game.view = View_BattleVictory;
+        //     } break;
+
+        //     case view_TransitionKind_BuyFurniture: {
+        //         game.view = View_Furniture;
+        //     } break;
+
+        //     case view_TransitionKind_CampFornications: {
+        //         game.view = View_Fornications;
+        //     }; break;
+
+        //     case view_TransitionKind_BackToCampFromFornications: {
+        //         game.view = View_Camp;
+        //     }; break;
+
+        //     case view_TransitionKind_BackToWorldMapFromPocketCamp:
+        //     case view_TransitionKind_BackToWorldMap: {
+        //         game.view = View_WorldMap;
+        //     } break;
+
+        // };
+
+        view_handlers[game.view].init(transition);
+        goto start;
+    }
+
+    view_handlers[game.view].render();
+}
+
 
 static void input(const sapp_event* ev) {
     switch (ev->type) {
