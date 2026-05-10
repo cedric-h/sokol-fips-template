@@ -36,7 +36,7 @@ void main() {
 
             dist = pow(abs(dist), 2.2);
 
-            float dbuffer = 0.5f;
+            float dbuffer = 0.575f;
 
             float raw_gamma = 2.0f * 1.4142;
             float size = float(bytes[1]);
