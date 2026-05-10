@@ -82,6 +82,8 @@ fips_begin_app(eab windowed)
     fips_files(src/tex.c)
 
     fips_files(src/view_options.c)
+    fips_files(src/view_title.c)
+    fips_files(src/view_camptech.c)
 
     fips_deps(sokol)
 

@@ -12,12 +12,12 @@ static void ui_clay_init(void);
 static void ui_clay_free(void);
 
 size_t ui_font_sizes[] = {
-    [ui_Font_Button  ] = 35*2,
-    [ui_Font_Title   ] = 60*2,
-    [ui_Font_SubTitle] = 48*2,
-    [ui_Font_Cost    ] = 25*2,
-    [ui_Font_Desc    ] = 18*2,
-    [ui_Font_Name    ] = 10*2,
+    [ui_Font_Button  ] = 63,
+    [ui_Font_Title   ] = 100,
+    [ui_Font_SubTitle] = 86,
+    [ui_Font_Cost    ] = 45,
+    [ui_Font_Desc    ] = 32,
+    [ui_Font_Name    ] = 18,
 };
 _Static_assert(countof(ui_font_sizes) == ui_Font_COUNT, "missing font path");
 
@@ -91,6 +91,11 @@ static struct {
         guy_GeneConfig *gene_hovered;
         guy_Guy *guy;
     } guy_detail;
+
+    struct {
+        f2 scroll, mouse_pos;
+        bool mouse_down;
+    } input;
 } ui = {0};
 
 size_t ui_font_size(ui_Font f) { return ui_font_sizes[f]; }
@@ -182,6 +187,7 @@ void ui_init(void) {
     for (int i = 0; i < ui_Icon_COUNT; i++) {
         ui.icons[i] = tex_init(ui_icon_paths[i]);
     }
+    tex_bake_spritesheet();
 
     for (int i = 0; i < ui_Sound_COUNT; i++)
         ui.sounds[i] = sound_init(ui_sound_paths[i]);
@@ -199,29 +205,33 @@ void ui_free(void) {
 }
 
 void ui_update(void) {
-    // RL_Vector2 mouseWheelDelta = RL_GetMouseWheelMoveV();
-    // float mouseWheelX = mouseWheelDelta.x;
-    // float mouseWheelY = mouseWheelDelta.y;
 
     // Clay_SetDebugModeEnabled(false);
 
-    // Clay_Vector2 mousePosition = {
-    //     RL_GetMousePosition().x,
-    //     RL_GetMousePosition().y,
-    // };
-    // Clay_SetPointerState(mousePosition, RL_IsMouseButtonDown(0));
-    // Clay_SetLayoutDimensions(
-    //     (Clay_Dimensions) {
-    //         (float)base_screen_size_x(),
-    //         (float)base_screen_size_y()
-    //     }
-    // );
+    Clay_SetLayoutDimensions(
+        (Clay_Dimensions) {
+            (float)base_screen_size_x(),
+            (float)base_screen_size_y()
+        }
+    );
 
-    // Clay_UpdateScrollContainers(
-    //     true,
-    //     (Clay_Vector2) {mouseWheelX, mouseWheelY},
-    //     base_delta_time()
-    // );
+    Clay_SetPointerState(
+        (Clay_Vector2) {
+            ui.input.mouse_pos.x,
+            ui.input.mouse_pos.y,
+        },
+        ui.input.mouse_down
+    );
+    Clay_UpdateScrollContainers(
+        true,
+        (Clay_Vector2) {
+            ui.input.scroll.x,
+            ui.input.scroll.y,
+        },
+        sapp_frame_duration()
+    );
+    ui.input.scroll = (f2){ 0, 0 };
+
 }
 
 /* offsets start/end randomly */
@@ -320,7 +330,7 @@ ui_Click ui_big_button(Clay_String text, tex_Tex icon) {
         }
     }) {
         if (Clay_Hovered()) {
-            base_set_mouse_cursor(base_MouseCursor_PointingHand);
+            base_set_cursor(SAPP_MOUSECURSOR_POINTING_HAND);
 
             switch (Clay_GetPointerState().state) {
                 case CLAY_POINTER_DATA_PRESSED_THIS_FRAME:
@@ -405,7 +415,7 @@ ui_Click ui_small_button_ex(ui_SmallButton_Config cfg) {
         }
     }) {
         if (!disabled && Clay_Hovered()) {
-            base_set_mouse_cursor(base_MouseCursor_PointingHand);
+            base_set_cursor(SAPP_MOUSECURSOR_POINTING_HAND);
 
             switch (Clay_GetPointerState().state) {
                 case CLAY_POINTER_DATA_PRESSED_THIS_FRAME:
@@ -854,7 +864,7 @@ static Clay_RenderCommandArray ui_guy_detail(void) {
 
     ui.guy_detail.gene_hovered = NULL;
 
-    return Clay_EndLayout(0);
+    return Clay_EndLayout(sapp_frame_duration());
 }
 
 void ui_guy_show_detail_page(guy_Guy *guy) {
@@ -944,6 +954,23 @@ static void ui_render_cmds(Clay_RenderCommandArray render_cmds, draw_Geo *geo) {
             } break;
 
             case CLAY_RENDER_COMMAND_TYPE_RECTANGLE: {
+                Clay_RectangleRenderData *config = &cmd->renderData.rectangle;
+                Color c = (Color) {
+                    config->backgroundColor.r,
+                    config->backgroundColor.g,
+                    config->backgroundColor.b,
+                    config->backgroundColor.a
+                };
+                draw_geo_rect(
+                    geo,
+                    (draw_Rect) {
+                        .min_x = min_x,
+                        .min_y = min_y,
+                        .max_x = max_x,
+                        .max_y = max_y
+                    },
+                    c
+                );
             } break;
 
             case CLAY_RENDER_COMMAND_TYPE_BORDER: {
@@ -1002,5 +1029,25 @@ static void ui_render_cmds(Clay_RenderCommandArray render_cmds, draw_Geo *geo) {
                 exit(1);
             }
         }
+    }
+}
+
+void ui_input(sapp_event* ev) {
+    switch(ev->type){
+    case SAPP_EVENTTYPE_MOUSE_MOVE:
+        ui.input.mouse_pos.x = ev->mouse_x / sapp_dpi_scale();
+        ui.input.mouse_pos.y = ev->mouse_y / sapp_dpi_scale();
+        break;
+    case SAPP_EVENTTYPE_MOUSE_DOWN:
+        ui.input.mouse_down = true;
+        break;
+    case SAPP_EVENTTYPE_MOUSE_UP:
+        ui.input.mouse_down = false;
+        break;
+    case SAPP_EVENTTYPE_MOUSE_SCROLL:
+        ui.input.scroll.x += ev->scroll_x;
+        ui.input.scroll.y += ev->scroll_y;
+        break;
+    default: break;
     }
 }

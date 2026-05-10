@@ -15,6 +15,7 @@
 
 static struct {
     View view;
+    sapp_mouse_cursor cursor_this_frame;
     uint64_t update_count;
     uint64_t start;
 } game = {0};
@@ -22,8 +23,7 @@ static struct {
 float base_screen_size_x(void) { return sapp_widthf () / sapp_dpi_scale(); }
 float base_screen_size_y(void) { return sapp_heightf() / sapp_dpi_scale(); }
 double base_play_duration(void) { return stm_sec(stm_since(game.start)); }
-void base_set_mouse_cursor(base_MouseCursor c) { return; }
-float base_delta_time(void) { return 1.0f / 60.0f; }
+void base_set_cursor(sapp_mouse_cursor c) { game.cursor_this_frame = c; }
 
 static void init(void) {
     stm_setup();
@@ -57,6 +57,9 @@ static void cleanup(void) {
 }
 
 static void frame(void) {
+    sapp_set_mouse_cursor(game.cursor_this_frame);
+    game.cursor_this_frame = SAPP_MOUSECURSOR_DEFAULT;
+
     game.update_count += 1;
 
     view_Transition transition = { 0 };
@@ -67,12 +70,12 @@ start:
     if (transition.kind != view_TransitionKind_NONE) {
         view_handlers[game.view].free();
 
-        // switch (transition.kind) {
-        //     case view_TransitionKind_NONE: assert(false); break;
+        switch (transition.kind) {
+            case view_TransitionKind_NONE: assert(false); break;
 
-        //     case view_TransitionKind_Title: game.view = View_Title; break;
-        //     case view_TransitionKind_Options: game.view = View_Options; break;
-        //     case view_TransitionKind_CampTech: game.view = View_CampTech; break;
+            case view_TransitionKind_Title: game.view = View_Title; break;
+            case view_TransitionKind_Options: game.view = View_Options; break;
+            case view_TransitionKind_CampTech: game.view = View_CampTech; break;
 
         //     case view_TransitionKind_StartRun: {
         //         uint32_t run_id = save.run.id;
@@ -125,7 +128,7 @@ start:
         //         game.view = View_WorldMap;
         //     } break;
 
-        // };
+        };
 
         view_handlers[game.view].init(transition);
         goto start;
@@ -135,7 +138,8 @@ start:
 }
 
 
-static void input(const sapp_event* ev) {
+static void input(const sapp_event *ev) {
+    /* global input that overrides views */
     switch (ev->type) {
         case SAPP_EVENTTYPE_KEY_DOWN: {
 #ifdef __APPLE__
@@ -148,9 +152,11 @@ static void input(const sapp_event* ev) {
 
         default: break;
     }
+
+    view_handlers[game.view].input(ev);
 }
 
-sapp_desc sokol_main(int argc, char* argv[]) {
+sapp_desc sokol_main(int argc, char *argv[]) {
     (void)argc; (void)argv;
     return (sapp_desc){
         .init_cb = init,

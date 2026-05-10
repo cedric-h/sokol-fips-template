@@ -6,8 +6,8 @@
 
 #define views \
     x(      options, View_Options      ) \
-    // x(        title, View_Title        ) \
-    // x(     camptech, View_CampTech     ) \
+    x(        title, View_Title        ) \
+    x(     camptech, View_CampTech     ) \
     // x(     worldmap, View_WorldMap     ) \
     // x(       battle, View_Battle       ) \
     // x(battlevictory, View_BattleVictory) \
@@ -68,7 +68,8 @@ views
     void view_##view_name##_init  (view_Transition); \
     void view_##view_name##_free  (void); \
     view_Transition view_##view_name##_update(uint64_t t); \
-    void view_##view_name##_render(void);
+    void view_##view_name##_render(void); \
+    void view_##view_name##_input(sapp_event *ev);
 views
 #undef x
 
@@ -78,6 +79,7 @@ typedef struct {
     void (*free)(void);
     view_Transition (*update)(uint64_t t);
     void (*render)(void);
+    void (*input)(sapp_event *ev);
 } ViewHandler;
 
 static ViewHandler view_handlers[View_COUNT] = {
@@ -87,6 +89,7 @@ static ViewHandler view_handlers[View_COUNT] = {
         .free   = view_##view_name##_free  , \
         .update = view_##view_name##_update, \
         .render = view_##view_name##_render, \
+        .input  = view_##view_name##_input , \
     },
 views
 #undef x

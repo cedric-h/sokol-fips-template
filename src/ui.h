@@ -72,6 +72,7 @@ sound_Sound ui_sound(ui_Sound);
 void ui_init(void);
 void ui_free(void);
 void ui_update(void);
+void ui_input(sapp_event *ev);
 void ui_render(Clay_RenderCommandArray render_cmds, draw_Geo *geo);
 
 typedef struct {

@@ -140,6 +140,31 @@ void draw_geo_tex(
     *g->idx_wtr++ = i + 3;
 }
 
+void draw_geo_rect(
+    draw_Geo *g,
+    draw_Rect r,
+    Color color
+) {
+    draw_geo_ensure_can_hold_rects(g, 1);
+
+    draw_Vtx_Bytes b = {
+        .variant = draw_ShaderVariant_Solid,
+    };
+
+    draw_Idx i = draw_geo_vtx_count(g);
+    *g->vtx_wtr++ = (draw_Vtx) { draw_screen_to_gl((f2) { r.min_x, r.min_y }), { 0, 0 }, color, b };
+    *g->vtx_wtr++ = (draw_Vtx) { draw_screen_to_gl((f2) { r.max_x, r.max_y }), { 0, 0 }, color, b };
+    *g->vtx_wtr++ = (draw_Vtx) { draw_screen_to_gl((f2) { r.min_x, r.max_y }), { 0, 0 }, color, b };
+    *g->vtx_wtr++ = (draw_Vtx) { draw_screen_to_gl((f2) { r.max_x, r.min_y }), { 0, 0 }, color, b };
+
+    *g->idx_wtr++ = i + 0;
+    *g->idx_wtr++ = i + 1;
+    *g->idx_wtr++ = i + 2;
+    *g->idx_wtr++ = i + 1;
+    *g->idx_wtr++ = i + 0;
+    *g->idx_wtr++ = i + 3;
+}
+
 void draw_geo_str_ui(
     draw_Geo *g,
     f2 pos,
@@ -157,7 +182,7 @@ void draw_geo_str_ui(
         /* this is a caps-only font, so atlas only has lowercase */
         size_t char_idx = str[i] | (1 << 5);
         font_LetterRegion *l = &font_letter_regions[char_idx];
-        float scale = (float)size / font_BASE_CHAR_SIZE;
+        float scale = (float)size / (float)font_BASE_CHAR_SIZE;
 
         if (l->size_x == 0 || l->size_y == 0 || str[i] == ' ') {
             pen_x += l->advance * scale;
@@ -212,7 +237,7 @@ draw_TextSize draw_measure_str(
         size_t char_idx = str[i] | (1 << 5);
         font_LetterRegion *l = &font_letter_regions[char_idx];
 
-        float scale = (float)font_size / font_BASE_CHAR_SIZE;
+        float scale = (float)font_size / (float)font_BASE_CHAR_SIZE;
         float x = (float)l->advance * scale;
         float y = (float)l->size_y * scale;
         size.width += x;
@@ -274,7 +299,7 @@ void draw_init(void) {
                 .mag_filter = SG_FILTER_LINEAR,
             });
     }
-    tex_system_init(&draw.core_geo_bindings);
+    tex_system_init();
 
     draw.pip = sg_make_pipeline(&(sg_pipeline_desc){
         .shader = sg_make_shader(core_shader_desc(sg_query_backend())),
@@ -314,6 +339,7 @@ void draw_geo_draw(draw_Geo *g) {
 
     {
         sg_bindings b = draw.core_geo_bindings;
+        tex_system_bind(&b);
         b.vertex_buffers[0] = g->vtx_buf;
         b.index_buffer = g->idx_buf;
         sg_apply_bindings(&b);

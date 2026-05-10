@@ -9,6 +9,7 @@
 #include <float.h>
 #include <assert.h>
 
+#include "sokol_app.h"
 #include "rand.h"
 
 #define countof(arr) ( sizeof(arr) / sizeof((arr)[0]) )
@@ -17,25 +18,12 @@
 #define sign(a) (((a) < 0) ? -1 : 1)
 #define GOLDEN_RATIO 1.61803
 
-#define resource_dir "./eab.app/Contents/MacOS/resources"
+#define EXE_PATH "./eab.app/Contents/MacOS"
 
 float base_screen_size_x(void);
 float base_screen_size_y(void);
 double base_play_duration(void);
-float base_delta_time(void);
-
-typedef enum {
-    base_MouseCursor_Default = 0,   // equivalent with system default cursor
-    base_MouseCursor_Arrow,
-    base_MouseCursor_IBeam,
-    base_MouseCursor_Crosshair,
-    base_MouseCursor_PointingHand,
-    base_MouseCursor_ResizeEW,
-    base_MouseCursor_ResizeNS,
-    base_MouseCursor_ResizeAll,
-    base_MouseCursor_NotAllowed,
-} base_MouseCursor;
-void base_set_mouse_cursor(base_MouseCursor);
+void base_set_cursor(sapp_mouse_cursor);
 
 typedef struct { float x, y; } f2;
 

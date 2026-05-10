@@ -68,6 +68,12 @@ void draw_geo_tex(
     Color color
 );
 
+void draw_geo_rect(
+    draw_Geo *geo,
+    draw_Rect rect,
+    Color color
+);
+
 void draw_geo_str(
     draw_Geo *g,
     f2 pos,
