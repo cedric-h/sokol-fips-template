@@ -912,6 +912,23 @@ static void ui_render_cmds(Clay_RenderCommandArray render_cmds, draw_Geo *geo) {
             } break;
 
             case CLAY_RENDER_COMMAND_TYPE_IMAGE: {
+                Clay_ImageRenderData *ird = &cmd->renderData.image;
+                draw_geo_tex(
+                    geo,
+                    ird->imageData,
+                    (draw_Rect) {
+                        .min_x = min_x,
+                        .min_y = min_y,
+                        .max_x = max_x,
+                        .max_y = max_y,
+                    },
+                    (Color) {
+                        ird->backgroundColor.r,
+                        ird->backgroundColor.g,
+                        ird->backgroundColor.b,
+                        ird->backgroundColor.a,
+                    }
+                );
             } break;
 
             case CLAY_RENDER_COMMAND_TYPE_SCISSOR_START: {

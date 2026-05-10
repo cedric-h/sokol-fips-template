@@ -17,6 +17,8 @@
 #define sign(a) (((a) < 0) ? -1 : 1)
 #define GOLDEN_RATIO 1.61803
 
+#define resource_dir "./eab.app/Contents/MacOS/resources"
+
 float base_screen_size_x(void);
 float base_screen_size_y(void);
 double base_play_duration(void);

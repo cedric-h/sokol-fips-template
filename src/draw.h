@@ -1,6 +1,8 @@
 #ifndef __EAB_DRAW_IMPL
 #define __EAB_DRAW_IMPL
 
+typedef struct { float min_x, min_y, max_x, max_y; } draw_Rect;
+
 #include "base.h"
 #include "tex.h"
 
@@ -59,7 +61,6 @@ draw_TextSize draw_measure_str(
     uint8_t size
 );
 
-typedef struct { float min_x, min_y, max_x, max_y; } draw_Rect;
 void draw_geo_tex(
     draw_Geo *geo,
     tex_Tex tex,

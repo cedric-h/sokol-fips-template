@@ -120,20 +120,17 @@ void draw_geo_tex(
 ) {
     draw_geo_ensure_can_hold_rects(g, 1);
 
-    float min_uv_x = 0.0f;
-    float min_uv_y = 0.0f;
-    float max_uv_x = 1.0f;
-    float max_uv_y = 1.0f;
+    draw_Rect uv = tex_uv_rect(tex);
 
     draw_Vtx_Bytes b = {
-        .variant = draw_ShaderVariant_Solid,
+        .variant = draw_ShaderVariant_Tex,
     };
 
     draw_Idx i = draw_geo_vtx_count(g);
-    *g->vtx_wtr++ = (draw_Vtx) { { r.min_x, r.min_y }, { min_uv_x, min_uv_y }, color, b };
-    *g->vtx_wtr++ = (draw_Vtx) { { r.max_x, r.max_y }, { max_uv_x, max_uv_y }, color, b };
-    *g->vtx_wtr++ = (draw_Vtx) { { r.min_x, r.max_y }, { min_uv_x, max_uv_y }, color, b };
-    *g->vtx_wtr++ = (draw_Vtx) { { r.max_x, r.min_y }, { max_uv_x, min_uv_y }, color, b };
+    *g->vtx_wtr++ = (draw_Vtx) { draw_screen_to_gl((f2) { r.min_x, r.min_y }), { uv.min_x, uv.min_y }, color, b };
+    *g->vtx_wtr++ = (draw_Vtx) { draw_screen_to_gl((f2) { r.max_x, r.max_y }), { uv.max_x, uv.max_y }, color, b };
+    *g->vtx_wtr++ = (draw_Vtx) { draw_screen_to_gl((f2) { r.min_x, r.max_y }), { uv.min_x, uv.max_y }, color, b };
+    *g->vtx_wtr++ = (draw_Vtx) { draw_screen_to_gl((f2) { r.max_x, r.min_y }), { uv.max_x, uv.min_y }, color, b };
 
     *g->idx_wtr++ = i + 0;
     *g->idx_wtr++ = i + 1;
@@ -228,9 +225,7 @@ draw_TextSize draw_measure_str(
 static struct {
     sg_pipeline pip;
 
-    sg_view font_tex;
-    sg_sampler font_smp;
-
+    sg_bindings core_geo_bindings;
     draw_Geo geo_default;
 } draw;
 
@@ -268,12 +263,18 @@ void draw_init(void) {
             .pixel_format = SG_PIXELFORMAT_R8,
             .data.mip_levels[0] = SG_RANGE(pixels),
         });
-        draw.font_tex = sg_make_view(&(sg_view_desc){ .texture = { .image = img } });
-        draw.font_smp = sg_make_sampler(&(sg_sampler_desc){
-            .min_filter = SG_FILTER_LINEAR,
-            .mag_filter = SG_FILTER_LINEAR,
-        });
+
+        draw.core_geo_bindings.views[VIEW_font_tex] =
+            sg_make_view(&(sg_view_desc){
+                .texture = { .image = img }
+            });
+        draw.core_geo_bindings.samplers[SMP_font_smp] =
+            sg_make_sampler(&(sg_sampler_desc){
+                .min_filter = SG_FILTER_LINEAR,
+                .mag_filter = SG_FILTER_LINEAR,
+            });
     }
+    tex_system_init(&draw.core_geo_bindings);
 
     draw.pip = sg_make_pipeline(&(sg_pipeline_desc){
         .shader = sg_make_shader(core_shader_desc(sg_query_backend())),
@@ -304,18 +305,19 @@ void draw_init(void) {
 }
 
 void draw_free(void) {
+    tex_system_free();
     sg_shutdown();
 }
 
 void draw_geo_draw(draw_Geo *g) {
     draw_geo_upload(g);
 
-    sg_apply_bindings(&(sg_bindings) {
-        .vertex_buffers[0] = g->vtx_buf,
-        .index_buffer = g->idx_buf,
-        .views[VIEW_font_tex] = draw.font_tex,
-        .samplers[SMP_font_smp] = draw.font_smp,
-    });
+    {
+        sg_bindings b = draw.core_geo_bindings;
+        b.vertex_buffers[0] = g->vtx_buf;
+        b.index_buffer = g->idx_buf;
+        sg_apply_bindings(&b);
+    }
     sg_draw(0, draw_geo_idx_count(g), 1);
 }
 

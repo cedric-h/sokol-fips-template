@@ -84,4 +84,11 @@ fips_begin_app(eab windowed)
     fips_files(src/view_options.c)
 
     fips_deps(sokol)
+
+    add_custom_command(
+        TARGET eab POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+                ${CMAKE_CURRENT_SOURCE_DIR}/src/resources
+                $<TARGET_FILE_DIR:eab>/resources
+    )
 fips_end_app(eab windowed)

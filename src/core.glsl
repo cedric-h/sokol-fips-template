@@ -20,6 +20,9 @@ void main() {
 layout(binding=0) uniform texture2D font_tex;
 layout(binding=0) uniform sampler font_smp;
 
+layout(binding=1) uniform texture2D tex_tex;
+layout(binding=1) uniform sampler tex_smp;
+
 in vec4 color;
 in vec2 uv;
 flat in uvec4 bytes;
@@ -31,7 +34,7 @@ void main() {
         case 0: {
             float dist = texture(
                 sampler2D(font_tex, font_smp),
-                vec2(uv.x, uv.y)
+                uv
             ).r;
 
             dist = pow(abs(dist), 2.2);
@@ -46,6 +49,9 @@ void main() {
         }; break;
         case 1: {
             frag_color = color;
+        }; break;
+        case 2: {
+            frag_color = texture(sampler2D(tex_tex, tex_smp), uv);
         }; break;
     }
 }

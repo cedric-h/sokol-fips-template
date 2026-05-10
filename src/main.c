@@ -30,8 +30,8 @@ static void init(void) {
     game.start = stm_now();
 
     draw_init();
-    ui_init();
     guy_system_init();
+    ui_init();
 
     game.view = View_Options;
     // save.run.coin = 185;
@@ -53,7 +53,6 @@ static void cleanup(void) {
 
     ui_free();
     guy_system_free();
-
     draw_free();
 }
 
