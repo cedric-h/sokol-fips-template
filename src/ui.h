@@ -113,6 +113,7 @@ ui_Click ui_small_button(tex_Tex icon, bool disabled);
 ui_Click ui_small_button_ex(ui_SmallButton_Config config);
 
 void ui_guy_show_detail_page(guy_Guy *guy);
+Clay_RenderCommandArray ui_guy_detail(void);
 bool ui_takeover(void);
 
 #endif

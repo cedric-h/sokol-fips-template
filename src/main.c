@@ -33,16 +33,19 @@ static void init(void) {
     guy_system_init();
     ui_init();
 
-    game.view = View_WorldMap;
+    game.view = View_Camp;
     // save.run.coin = 185;
     save.run.furniture[0] = save_Furniture_Telescope;
     // save.run.furniture[0] = save_Furniture_Bed;
-    // {
-    //     guy_Guy mom = guy_from_race(guy_Race_Moai, guy_Sex_Female);
-    //     guy_Guy dad = guy_from_race(guy_Race_Moai, guy_Sex_Male);
-    //     for (int i = 0; i < 30; i++)
-    //         save.run.guys[i] = guy_from_parents(&mom, &dad);
-    // }
+    {
+        rand_seed(694838);
+
+        for (int i = 0; i < 8; i++) save.run.guys[i] = guy_from_race(guy_Race_Bunny, (i%2) ? guy_Sex_Female : guy_Sex_Male);
+
+        // guy_Guy mom = guy_from_race(guy_Race_Moai, guy_Sex_Female);
+        // guy_Guy dad = guy_from_race(guy_Race_Moai, guy_Sex_Male);
+        // for (int i = 0; i < 8; i++) save.run.guys[i] = guy_from_parents(&mom, &dad);
+    }
     // save.run.biome = save_Biome_Desert;
     view_handlers[game.view].init((view_Transition) {
         .battle.steps_from_root = 15
@@ -62,6 +65,14 @@ static void frame(void) {
     game.cursor_this_frame = SAPP_MOUSECURSOR_DEFAULT;
 
     game.update_count += 1;
+
+    if (ui_takeover()) {
+        ui_update();
+        draw_frame_start((Color) { 255, 255, 255, 255 });
+        ui_render(ui_guy_detail(), draw_geo_default());
+        draw_frame_end();
+        return;
+    }
 
     view_Transition transition = { 0 };
 
@@ -152,6 +163,11 @@ static void input(const sapp_event *ev) {
         } break;
 
         default: break;
+    }
+
+    if (ui_takeover()) {
+        ui_input(ev);
+        return;
     }
 
     view_handlers[game.view].input(ev);

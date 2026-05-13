@@ -102,6 +102,14 @@ void draw_geo_str(
     Color color
 );
 
+void draw_geo_str(
+    draw_Geo *g,
+    f2 pos,
+    char *str,
+    uint8_t size,
+    Color color
+);
+
 void draw_geo_str_ui(
     draw_Geo *g,
     f2 pos,

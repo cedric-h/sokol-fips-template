@@ -817,10 +817,6 @@ void view_worldmap_render(void) {
     draw_geo_reset(&view.terrain_geo);
     /* cam end */
 
-
-    draw_geo_circle(draw_geo_default(), view.mouse_pos, 10.0f,
-        (Color) { 255, 0, 0, 255 });
-
     ui_render(ui_create_layout(), draw_geo_default());
 
     draw_frame_end();

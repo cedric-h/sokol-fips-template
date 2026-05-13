@@ -9,11 +9,11 @@
     x(        title, View_Title        ) \
     x(     camptech, View_CampTech     ) \
     x(     worldmap, View_WorldMap     ) \
+    x(         camp, View_Camp         ) \
     // x(       battle, View_Battle       ) \
     // x(battlevictory, View_BattleVictory) \
     // x(    furniture, View_Furniture    ) \
     // x( battledefeat, View_BattleDefeat ) \
-    // x(         camp, View_Camp         ) \
     // x( fornications, View_Fornications ) \
     // x(guycustomizer, View_GuyCustomizer) \
 

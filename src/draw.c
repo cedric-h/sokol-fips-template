@@ -220,6 +220,16 @@ void draw_geo_circle(
     *g->idx_wtr++ = i + 3;
 }
 
+void draw_geo_str(
+    draw_Geo *g,
+    f2 pos,
+    char *str,
+    uint8_t size,
+    Color color
+) {
+    draw_geo_str_ui(g, pos, str, strlen(str), size, color);
+}
+
 void draw_geo_str_ui(
     draw_Geo *g,
     f2 pos,
@@ -249,8 +259,8 @@ void draw_geo_str_ui(
         float max_uv_x = (l->x + l->size_x) / (float)font_TEX_SIZE_X;
         float max_uv_y = (l->y + l->size_y) / (float)font_TEX_SIZE_Y;
 
-        float x = pen_x;
-        float y = pos.y - (l->top) * scale;
+        float x = pen_x - size*0.2; /* fudged these to align with measure_str */
+        float y = pos.y + size/2 - (l->top)*scale;
         float min_px_x = x + 0;
         float min_px_y = y + 0;
         float max_px_x = x + l->size_x*scale;
@@ -278,6 +288,16 @@ void draw_geo_str_ui(
 
         pen_x += l->advance * scale;
     }
+
+    /* debug */
+    if (0) {
+        draw_TextSize s = draw_measure_str(str, str_len, size);
+        draw_geo_line(g, (f2) { pos.x, pos.y }, (f2) { pos.x + s.width, pos.y }, 1, color);
+        draw_geo_line(g, (f2) { pos.x, pos.y + s.height }, (f2) { pos.x + s.width, pos.y + s.height }, 1, color);
+
+        draw_geo_line(g, (f2) { pos.x, pos.y + s.height }, (f2) { pos.x, pos.y }, 1, color);
+        draw_geo_line(g, (f2) { pos.x + s.width, pos.y + s.height }, (f2) { pos.x + s.width, pos.y }, 1, color);
+    }
 }
 
 draw_TextSize draw_measure_str(
@@ -294,7 +314,7 @@ draw_TextSize draw_measure_str(
 
         float scale = (float)font_size / (float)font_BASE_CHAR_SIZE;
         float x = (float)l->advance * scale;
-        float y = (float)l->size_y * scale;
+        float y = font_size*2/3;
         size.width += x;
         size.height = max(size.height, y);
     }

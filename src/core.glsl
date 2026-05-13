@@ -49,7 +49,7 @@ void main() {
         }; break;
 
         case 1: {
-            frag_color = color;
+            frag_color = color * color.a;
         }; break;
 
         case 2: {

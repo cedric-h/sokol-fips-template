@@ -868,6 +868,9 @@ typedef struct {
 } guy_DrawCtx;
 
 static void guy_draw_layer(guy_DrawCtx *ctx, Color c, tex_Tex t) {
+    if (t.id == 0)
+        return;
+
     /* features are oriented on a canvas x3 larger than the guy so that
      * all of the positioning information can be authored alongside the
      * object inside art tools, and rendering them is simply compositing
@@ -875,20 +878,18 @@ static void guy_draw_layer(guy_DrawCtx *ctx, Color c, tex_Tex t) {
      *
      * layers which are larger or smaller than the expected 600.0f are
      * scaled up or down proportionally, centered around the center of the 3x3 */
-    // float size = 3*ctx->size * (t.width / 600.0f);
-    // RL_DrawTexturePro(
-    //     t,
-    //     (RL_Rectangle) { 0, 0, t.width, t.height },
-    //     (RL_Rectangle) {
-    //         ctx->pos.x - size/2,
-    //         ctx->pos.y - size/2,
-    //         size,
-    //         size
-    //     },
-    //     (RL_Vector2) { 0, 0 },
-    //     0,
-    //     (RL_Color) { c.r, c.g, c.b, c.a }
-    // );
+    float size = 3*ctx->size * (tex_size_x(t) / 600.0f);
+    draw_geo_tex(
+        draw_geo_default(),
+        t,
+        (draw_Rect) {
+            ctx->pos.x - size/2,
+            ctx->pos.y - size/2,
+            ctx->pos.x + size/2,
+            ctx->pos.y + size/2
+        },
+        c
+    );
 }
 
 void guy_draw(guy_Guy *guy, float x, float y, guy_DrawFlags flags) {
@@ -969,135 +970,135 @@ void guy_draw_ex(guy_DrawEx ex) {
     guy_draw_layer(&ctx, ctx. skin, guy_system.assets[layer_assets[guy_Layer_Limbs    ]]);
     guy_draw_layer(&ctx, ctx. eyes, guy_system.assets[layer_assets[guy_Layer_Bow      ]]);
 
-    // {
-    //     float sword_size = ctx.size * 1.2 * sqrtf(sqrtf(guy_strength(ex.guy)));
+    {
+        float sword_size = ctx.size * 1.2 * sqrtf(sqrtf(guy_strength(ex.guy)));
 
-    //     /* from the origin to the pommel */
-    //     float pommel_x = sword_size*0.2;
-    //     float pommel_y = sword_size*0.6;
+        /* from the origin to the pommel */
+        float pommel_x = sword_size*0.2;
+        float pommel_y = sword_size*0.6;
 
-    //     float sword_x = ex.pos.x + ctx.size*0.7f + sword_size*0.2f + pommel_x;
-    //     float sword_y = ex.pos.y + pommel_y;
-    //     size_t i = (size_t)(void *)ex.guy%69;
+        float sword_x = ex.pos.x + ctx.size*0.7f + sword_size*0.2f + pommel_x;
+        float sword_y = ex.pos.y + pommel_y;
+        size_t i = (size_t)(void *)ex.guy%69;
 
-    //     float rot = sinf(GOLDEN_RATIO*i + RL_GetTime()*2) * 5;
-    //     do {
-    //         if (!(ex.flags & guy_DrawFlags_Target))
-    //             continue;
+        float rot = sinf(GOLDEN_RATIO*i + base_play_duration()*2) * 5;
+        do {
+            if (!(ex.flags & guy_DrawFlags_Target))
+                continue;
 
-    //         float anim_speed = 1.2f;
-    //         float dx = ex.pos.x - ex.target.x;
-    //         float dy = ex.pos.y - ex.target.y;
-    //         if ((fabsf(dx) + fabsf(dy)) == 0)
-    //             continue;
+            float anim_speed = 1.2f;
+            float dx = ex.pos.x - ex.target.x;
+            float dy = ex.pos.y - ex.target.y;
+            if ((fabsf(dx) + fabsf(dy)) == 0)
+                continue;
 
-    //         rot = rot / 180.0f * M_PI;
-    //         rot += atan2f(dy, dx);
-    //         rot -= M_PI*0.75;
-    //         if (ex.swing_t != 0) {
-    //             double t = (RL_GetTime() - ex.swing_t) * anim_speed * 2;
+            rot = rot / 180.0f * M_PI;
+            rot += atan2f(dy, dx);
+            rot -= M_PI*0.75;
+            if (ex.swing_t != 0) {
+                double t = (base_play_duration() - ex.swing_t) * anim_speed * 2;
 
-    //             float rot_start = rot;
-    //             float rad_overshoot     = rot - M_PI*0.50;
-    //             float rad_from          = rot - M_PI*0.40;
-    //             float rad_to            = rot + M_PI*0.40;
-    //             float rad_followthrough = rot + M_PI*0.55;
+                float rot_start = rot;
+                float rad_overshoot     = rot - M_PI*0.50;
+                float rad_from          = rot - M_PI*0.40;
+                float rad_to            = rot + M_PI*0.40;
+                float rad_followthrough = rot + M_PI*0.55;
 
-    //             double prepare_t = t / 0.1;
-    //             if (prepare_t > 0 && prepare_t < 1) {
-    //                 rot = lerp_rads(rot_start, rad_from, ease_in_back(prepare_t));
-    //             }
-    //             t -= 0.1;
+                double prepare_t = t / 0.1;
+                if (prepare_t > 0 && prepare_t < 1) {
+                    rot = lerp_rads(rot_start, rad_from, ease_in_back(prepare_t));
+                }
+                t -= 0.1;
 
-    //             double hold_t = t / 0.3;
-    //             if (hold_t > 0 && hold_t < 1) {
-    //                 rot = lerp_rads(
-    //                     rad_from,
-    //                     rad_overshoot,
-    //                     hold_t
-    //                 );
-    //             }
-    //             t -= 0.3;
+                double hold_t = t / 0.3;
+                if (hold_t > 0 && hold_t < 1) {
+                    rot = lerp_rads(
+                        rad_from,
+                        rad_overshoot,
+                        hold_t
+                    );
+                }
+                t -= 0.3;
 
-    //             double attack_t = t / 0.35;
-    //             if (attack_t > 0 && attack_t < 1) {
-    //                 rot = lerp_rads(rad_overshoot, rad_to, ease_in_back(attack_t));
-    //             }
-    //             t -= 0.35;
+                double attack_t = t / 0.35;
+                if (attack_t > 0 && attack_t < 1) {
+                    rot = lerp_rads(rad_overshoot, rad_to, ease_in_back(attack_t));
+                }
+                t -= 0.35;
 
-    //             double followthrough_t = t / 0.15;
-    //             if (followthrough_t > 0 && followthrough_t < 1) {
-    //                 rot = lerp_rads(
-    //                     rad_to,
-    //                     rad_followthrough,
-    //                     followthrough_t
-    //                 );
-    //             }
-    //             t -= 0.15;
+                double followthrough_t = t / 0.15;
+                if (followthrough_t > 0 && followthrough_t < 1) {
+                    rot = lerp_rads(
+                        rad_to,
+                        rad_followthrough,
+                        followthrough_t
+                    );
+                }
+                t -= 0.15;
 
-    //             double return_t = t / 0.3;
-    //             if (return_t > 0 && return_t < 1) {
-    //                 rot = lerp_rads(
-    //                     rad_followthrough,
-    //                     rot_start,
-    //                     ease_in_back(return_t)
-    //                 );
-    //             }
-    //             t -= 0.3;
-    //         }
+                double return_t = t / 0.3;
+                if (return_t > 0 && return_t < 1) {
+                    rot = lerp_rads(
+                        rad_followthrough,
+                        rot_start,
+                        ease_in_back(return_t)
+                    );
+                }
+                t -= 0.3;
+            }
 
-    //         if (ex.swing_t != 0) {
-    //             float dl = sqrtf(dx*dx + dy*dy);
+            if (ex.swing_t != 0) {
+                float dl = sqrtf(dx*dx + dy*dy);
 
-    //             /* push sword_x towards rot */
-    //             double t = (RL_GetTime() - ex.swing_t)*anim_speed*0.8;
-    //             float fwd_travel = 35;
-    //             float back_travel = -8;
+                /* push sword_x towards rot */
+                double t = (base_play_duration() - ex.swing_t)*anim_speed*0.8;
+                float fwd_travel = 35;
+                float back_travel = -8;
 
-    //             double back_t = t / 0.1;
-    //             if (back_t < 1) {
-    //                 float a = lerpf(0, back_travel, ease_in_back(back_t));
-    //                 sword_x -= dx/dl * a;
-    //                 sword_y -= dy/dl * a;
-    //             }
-    //             t -= 0.1;
+                double back_t = t / 0.1;
+                if (back_t < 1) {
+                    float a = lerpf(0, back_travel, ease_in_back(back_t));
+                    sword_x -= dx/dl * a;
+                    sword_y -= dy/dl * a;
+                }
+                t -= 0.1;
 
-    //             double stab_t = t / 0.1;
-    //             if (stab_t > 0 && stab_t < 1) {
-    //                 float a = lerpf(back_travel, fwd_travel, ease_in_back(stab_t));
-    //                 sword_x -= dx/dl * a;
-    //                 sword_y -= dy/dl * a;
-    //             }
-    //             t -= 0.1;
+                double stab_t = t / 0.1;
+                if (stab_t > 0 && stab_t < 1) {
+                    float a = lerpf(back_travel, fwd_travel, ease_in_back(stab_t));
+                    sword_x -= dx/dl * a;
+                    sword_y -= dy/dl * a;
+                }
+                t -= 0.1;
 
-    //             double return_t = t / 0.3;
-    //             if (return_t > 0 && return_t < 1) {
-    //                 sword_x -= dx/dl * lerpf(fwd_travel, 0, return_t);
-    //                 sword_y -= dy/dl * lerpf(fwd_travel, 0, return_t);
-    //             }
-    //             t -= 0.3;
-    //         }
+                double return_t = t / 0.3;
+                if (return_t > 0 && return_t < 1) {
+                    sword_x -= dx/dl * lerpf(fwd_travel, 0, return_t);
+                    sword_y -= dy/dl * lerpf(fwd_travel, 0, return_t);
+                }
+                t -= 0.3;
+            }
 
-    //         rot = (rot / M_PI) * 180;
-    //     } while (false);
+            rot = (rot / M_PI) * 180;
+        } while (false);
 
-    //     RL_DrawTexturePro(
-    //         tool,
-    //         (RL_Rectangle) { 0, 0, tool.width, tool.height },
-    //         (RL_Rectangle) {
-    //             sword_x - sword_size/2,
-    //             sword_y - sword_size/2,
-    //             sword_size,
-    //             sword_size
-    //         },
-    //         (RL_Vector2) {
-    //             pommel_x,
-    //             pommel_y,
-    //         },
-    //         rot,
-    //         (RL_Color) { 255, 255, 255, 255 }
-    //     );
-    // }
+        draw_geo_tex(
+            draw_geo_default(),
+            tool,
+            (draw_Rect) {
+                sword_x - sword_size/2,
+                sword_y - sword_size/2,
+                sword_x + sword_size/2,
+                sword_y + sword_size/2
+            },
+            // (RL_Vector2) {
+            //     pommel_x,
+            //     pommel_y,
+            // },
+            // rot,
+            (Color) { 255, 255, 255, 255 }
+        );
+    }
 
     // if (guy_guy->crowned) {
     //     float hair_size = size*0.5;
@@ -1126,20 +1127,22 @@ void guy_draw_ex(guy_DrawEx ex) {
     //     );
     // }
 
-    // if (ex.flags & guy_DrawFlags_Name) {
-    //     ui_Font font = ui_Font_Name;
-    //     char name[GUY_NAME_LEN_MAX] = {0};
-    //     guy_name(ex.guy, name);
-    //     float w = RL_MeasureTextEx(ui_font_rl(font), name, ui_font_size(font), 1).x;
-    //     RL_DrawTextEx(
-    //         ui_font_rl(font),
-    //         name,
-    //         (RL_Vector2) { ex.pos.x - w/2, ex.pos.y + ctx.size*0.8 },
-    //         ui_font_size(font),
-    //         1,
-    //         (RL_Color) { 0, 0, 0, 255 }
-    //     );
-    // }
+    if (ex.flags & guy_DrawFlags_Name) {
+        ui_Font font = ui_Font_Name;
+        char name[GUY_NAME_LEN_MAX] = {0};
+        guy_name(ex.guy, name);
+
+        size_t len = strlen(name);
+        float w = draw_measure_str(name, len, ui_font_size(font)).width;
+        draw_geo_str_ui(
+            draw_geo_default(),
+            (f2) { ex.pos.x - w/2, ex.pos.y + ctx.size*0.8 },
+            name,
+            len,
+            ui_font_size(font),
+            (Color) { 0, 0, 0, 255 }
+        );
+    }
 }
 
 guy_Guy guy_from_parents(guy_Guy *mom, guy_Guy *dad) {

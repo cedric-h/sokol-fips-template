@@ -265,13 +265,9 @@ bool ui_flying_icon(ui_FlyingIcon new_icon) {
     return false;
 }
 
-static Clay_RenderCommandArray ui_guy_detail(void);
 static void ui_render_cmds(Clay_RenderCommandArray render_cmds, draw_Geo *g);
 void ui_render(Clay_RenderCommandArray render_cmds, draw_Geo *g) {
-    if (ui.guy_detail.active)
-        ui_render_cmds(ui_guy_detail(), g);
-    else
-        ui_render_cmds(render_cmds, g);
+    ui_render_cmds(render_cmds, g);
 
     ui.layout_arena = ui.layout_arena_backing;
 
@@ -644,7 +640,7 @@ static void ui_closest_relatives(guy_Guy *guy) {
     }
 }
 
-static Clay_RenderCommandArray ui_guy_detail(void) {
+Clay_RenderCommandArray ui_guy_detail(void) {
     guy_Guy *guy = ui.guy_detail.guy;
 
     Clay_BeginLayout();
@@ -923,6 +919,12 @@ static void ui_render_cmds(Clay_RenderCommandArray render_cmds, draw_Geo *geo) {
 
             case CLAY_RENDER_COMMAND_TYPE_IMAGE: {
                 Clay_ImageRenderData *ird = &cmd->renderData.image;
+
+                Clay_Color tint = ird->tint;
+                if (ird->tint.r == 0 && ird->tint.g == 0 &&
+                    ird->tint.b == 0 && ird->tint.a == 0)
+                    tint = (Clay_Color) { 255, 255, 255, 255 };
+
                 draw_geo_tex(
                     geo,
                     ird->imageData,
@@ -932,12 +934,7 @@ static void ui_render_cmds(Clay_RenderCommandArray render_cmds, draw_Geo *geo) {
                         .max_x = max_x,
                         .max_y = max_y,
                     },
-                    (Color) {
-                        ird->tint.r,
-                        ird->tint.g,
-                        ird->tint.b,
-                        ird->tint.a,
-                    }
+                    (Color) { tint.r, tint.g, tint.b, tint.a }
                 );
             } break;
 
@@ -1022,6 +1019,25 @@ static void ui_render_cmds(Clay_RenderCommandArray render_cmds, draw_Geo *geo) {
             } break;
 
             case CLAY_RENDER_COMMAND_TYPE_CUSTOM: {
+                Clay_CustomRenderData *config = &cmd->renderData.custom;
+                guy_Guy *custom_element = (guy_Guy *)config->customData;
+                if (!custom_element) continue;
+
+                float w = cmd->boundingBox.width /2;
+                float h = cmd->boundingBox.height/2;
+                float x = cmd->boundingBox.x + w;
+                float y = cmd->boundingBox.y + h + w/3;
+                w -=  ui_font_size(ui_Font_Desc) + 5.0f;
+                h -=  ui_font_size(ui_Font_Desc) + 5.0f;
+                y -= (ui_font_size(ui_Font_Desc) + 5.0f)*0.5f;
+                guy_draw_ex((guy_DrawEx) {
+                    .guy = custom_element,
+                    .pos = (f2) { x, y },
+                    .target = (f2) { x, y },
+                    .size = w,
+                    .flags = guy_DrawFlags_Name,
+                });
+                break;
             } break;
 
             default: {
