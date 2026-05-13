@@ -73,7 +73,6 @@ static struct {
 
     struct {
         f2 pos;
-        float zoom;
 
         /* don't do camera movement with the mouse, it's mine! */
         bool mouse_captured;
@@ -115,7 +114,6 @@ void view_worldmap_init(view_Transition t) {
 
     view.cam.pos.x = -stops.current->x;
     view.cam.pos.y = -stops.current->y;
-    view.cam.zoom = 1.0f;
 
     view.ts_enter_anim_start = base_play_duration();
     view.ts_enter_anim_done = base_play_duration();
@@ -480,7 +478,7 @@ void view_worldmap_render(void) {
     {
         float zoom = lerp(
             0.01f,
-            0.9f * view.cam.zoom,
+            0.9f,
             ease_out_sine_double(min(1, inv_lerp(
                 view.ts_enter_anim_start,
                 view.ts_enter_anim_done,
@@ -511,6 +509,12 @@ void view_worldmap_render(void) {
                     ease_in_sine_double(t)
                 );
         }
+
+        /* copy new position into geo's camera;
+         * should just refactor this to use geo as source of truth */
+        view.terrain_geo.camera.focus.x = view.cam.pos.x + base_screen_size_x()*0.5/zoom;
+        view.terrain_geo.camera.focus.y = view.cam.pos.y + base_screen_size_y()*0.5/zoom;
+        view.terrain_geo.camera.zoom = zoom;
     }
 
     draw_frame_start((Color) { 97, 131, 161, 255 });
@@ -809,9 +813,6 @@ void view_worldmap_render(void) {
         );
     }
 
-    view.terrain_geo.camera.focus.x = view.cam.pos.x + base_screen_size_x()*0.5;
-    view.terrain_geo.camera.focus.y = view.cam.pos.y + base_screen_size_y()*0.5;
-    view.terrain_geo.camera.zoom = view.cam.zoom;
     draw_geo_draw(&view.terrain_geo);
     draw_geo_reset(&view.terrain_geo);
     /* cam end */

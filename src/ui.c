@@ -438,10 +438,10 @@ ui_Click ui_small_button_ex(ui_SmallButton_Config cfg) {
             },
             .image = {
                 .imageData = icon,
+                .tint = (disabled)
+                    ? (Clay_Color) { 255, 255, 255, 200 }
+                    : (Clay_Color) { 255, 255, 255, 255 },
             },
-            .backgroundColor = (disabled)
-                ? (Clay_Color) { 255, 255, 255, 200 }
-                : (Clay_Color) {   0,   0,   0,   0 },
         });
     }
 
@@ -933,10 +933,10 @@ static void ui_render_cmds(Clay_RenderCommandArray render_cmds, draw_Geo *geo) {
                         .max_y = max_y,
                     },
                     (Color) {
-                        ird->backgroundColor.r,
-                        ird->backgroundColor.g,
-                        ird->backgroundColor.b,
-                        ird->backgroundColor.a,
+                        ird->tint.r,
+                        ird->tint.g,
+                        ird->tint.b,
+                        ird->tint.a,
                     }
                 );
             } break;

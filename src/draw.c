@@ -250,7 +250,7 @@ void draw_geo_str_ui(
         float max_uv_y = (l->y + l->size_y) / (float)font_TEX_SIZE_Y;
 
         float x = pen_x;
-        float y = pos.y;
+        float y = pos.y - (l->top) * scale;
         float min_px_x = x + 0;
         float min_px_y = y + 0;
         float max_px_x = x + l->size_x*scale;
@@ -362,9 +362,9 @@ void draw_init(void) {
         .cull_mode = SG_CULLMODE_BACK,
         .colors[0].blend = {
             .enabled = true,
-            .src_factor_rgb = SG_BLENDFACTOR_SRC_ALPHA,
-            .src_factor_alpha = SG_BLENDFACTOR_SRC_ALPHA,
-            .dst_factor_rgb = SG_BLENDFACTOR_ONE_MINUS_SRC_ALPHA,
+            .src_factor_rgb = SG_BLENDFACTOR_ONE, 
+            .dst_factor_rgb = SG_BLENDFACTOR_ONE_MINUS_SRC_ALPHA, 
+            .src_factor_alpha = SG_BLENDFACTOR_ONE, 
             .dst_factor_alpha = SG_BLENDFACTOR_ONE_MINUS_SRC_ALPHA,
         },
         .layout = {

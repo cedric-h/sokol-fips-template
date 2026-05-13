@@ -424,6 +424,7 @@ CLAY__WRAPPER_STRUCT(Clay_AspectRatioElementConfig);
 
 // Controls various settings related to image elements.
 typedef struct Clay_ImageElementConfig {
+    Clay_Color tint;
     tex_Tex imageData; // A transparent pointer used to pass image data through to the renderer.
 } Clay_ImageElementConfig;
 
@@ -680,6 +681,7 @@ typedef struct Clay_ImageRenderData {
     Clay_CornerRadius cornerRadius;
     // A pointer transparently passed through from the original element definition, typically used to represent image data.
     tex_Tex imageData;
+    Clay_Color tint;
 } Clay_ImageRenderData;
 
 // Render command data when commandType == CLAY_RENDER_COMMAND_TYPE_CUSTOM
@@ -3002,6 +3004,7 @@ void Clay__CalculateFinalLayout(float deltaTime, bool useStoredBoundingBoxes, bo
                                     .backgroundColor = currentElement->config.backgroundColor,
                                     .cornerRadius = currentElement->config.cornerRadius,
                                     .imageData = currentElement->config.image.imageData,
+                                    .tint = currentElement->config.image.tint,
                                 }
                             },
                             .userData = currentElement->config.userData,
