@@ -2,6 +2,14 @@
 #define __EAB_DRAW_IMPL
 
 typedef struct { float min_x, min_y, max_x, max_y; } draw_Rect;
+draw_Rect draw_rect_make_from_top_left(float left, float top, float size);
+
+typedef struct {
+    f2 focus;
+    float zoom;
+} draw_Camera;
+f2 draw_camera_world_from_screen(draw_Camera *, f2);
+f2 draw_camera_screen_from_world(draw_Camera *, f2);
 
 #include "base.h"
 #include "tex.h"
@@ -33,6 +41,10 @@ typedef struct {
     draw_Vtx_Bytes bytes;
 } draw_Vtx;
 typedef struct {
+    /* manipulates the Vtx positions as
+     * they're written into the buffers */
+    draw_Camera camera;
+
     sg_buffer vtx_buf;
     draw_Vtx *vtx, *vtx_wtr;
     size_t vtx_cap;
@@ -46,6 +58,7 @@ draw_Geo *draw_geo_default(void);
 
 void draw_geo_reset(draw_Geo *g);
 void draw_geo_init(draw_Geo *g, size_t rect_count);
+void draw_geo_free(draw_Geo *g);
 void draw_geo_draw(draw_Geo *g);
 void draw_geo_line(
     draw_Geo *g,
@@ -71,6 +84,13 @@ void draw_geo_tex(
 void draw_geo_rect(
     draw_Geo *geo,
     draw_Rect rect,
+    Color color
+);
+
+void draw_geo_circle(
+    draw_Geo *geo,
+    f2 p,
+    float radius,
     Color color
 );
 

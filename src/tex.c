@@ -209,6 +209,9 @@ draw_Rect tex_uv_rect(tex_Tex t) {
     return tex.sprites[t.id].uv_rect;
 }
 
+size_t tex_size_x(tex_Tex t) { return tex.sprites[t.id].img.size_x; }
+size_t tex_size_y(tex_Tex t) { return tex.sprites[t.id].img.size_y; }
+
 void tex_free(tex_Tex _) {
     return;
 }

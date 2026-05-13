@@ -9,7 +9,22 @@
 #include "font.h"
 #include "src/core.glsl.h"
 
-static f2 draw_screen_to_gl(f2 pos) {
+f2 draw_camera_world_from_screen(draw_Camera *c, f2 pos) {
+    pos.x /= c->zoom;
+    pos.y /= c->zoom;
+    pos.x -= c->focus.x;
+    pos.y -= c->focus.y;
+    return pos;
+}
+f2 draw_camera_screen_from_world(draw_Camera *c, f2 pos) {
+    pos.x += c->focus.x;
+    pos.y += c->focus.y;
+    pos.x *= c->zoom;
+    pos.y *= c->zoom;
+    return pos;
+}
+static f2 draw_geo_world_to_gl(draw_Geo *geo, f2 pos) {
+    pos = draw_camera_screen_from_world(&geo->camera, pos);
     return (f2) {
         .x = 2.0f*(pos.x / (sapp_widthf()  / sapp_dpi_scale())) - 1.0f,
         .y = 2.0f*(pos.y / (sapp_heightf() / sapp_dpi_scale())) - 1.0f,
@@ -66,10 +81,20 @@ static void draw_geo_ensure_can_hold_rects(draw_Geo *g, size_t rect_count) {
 }
 
 void draw_geo_init(draw_Geo *g, size_t rect_count) {
+    g->camera.zoom = 1;
     draw_geo_ensure_can_hold_rects(g, rect_count);
+}
+void draw_geo_free(draw_Geo *g) {
+    sg_destroy_buffer(g->idx_buf);
+    sg_destroy_buffer(g->vtx_buf);
+    free(g->idx);
+    free(g->vtx);
 }
 
 static void draw_geo_upload(draw_Geo *g) {
+    if (draw_geo_vtx_count(g) == 0)
+        return;
+
     sg_update_buffer(g->vtx_buf, &(sg_range){
         .ptr = g->vtx,
         .size = draw_geo_vtx_count(g) * sizeof(draw_Vtx),
@@ -99,10 +124,10 @@ void draw_geo_line(
 
     draw_Idx i = draw_geo_vtx_count(g);
     draw_Vtx_Bytes by = { .variant = draw_ShaderVariant_Solid };
-    *g->vtx_wtr++ = (draw_Vtx) { draw_screen_to_gl((f2){ a.x - nx, a.y - ny }), {}, color, by };
-    *g->vtx_wtr++ = (draw_Vtx) { draw_screen_to_gl((f2){ a.x + nx, a.y + ny }), {}, color, by };
-    *g->vtx_wtr++ = (draw_Vtx) { draw_screen_to_gl((f2){ b.x - nx, b.y - ny }), {}, color, by };
-    *g->vtx_wtr++ = (draw_Vtx) { draw_screen_to_gl((f2){ b.x + nx, b.y + ny }), {}, color, by };
+    *g->vtx_wtr++ = (draw_Vtx) { draw_geo_world_to_gl(g, (f2){ a.x - nx, a.y - ny }), {}, color, by };
+    *g->vtx_wtr++ = (draw_Vtx) { draw_geo_world_to_gl(g, (f2){ a.x + nx, a.y + ny }), {}, color, by };
+    *g->vtx_wtr++ = (draw_Vtx) { draw_geo_world_to_gl(g, (f2){ b.x - nx, b.y - ny }), {}, color, by };
+    *g->vtx_wtr++ = (draw_Vtx) { draw_geo_world_to_gl(g, (f2){ b.x + nx, b.y + ny }), {}, color, by };
 
     *g->idx_wtr++ = i + 0;
     *g->idx_wtr++ = i + 1;
@@ -127,10 +152,10 @@ void draw_geo_tex(
     };
 
     draw_Idx i = draw_geo_vtx_count(g);
-    *g->vtx_wtr++ = (draw_Vtx) { draw_screen_to_gl((f2) { r.min_x, r.min_y }), { uv.min_x, uv.min_y }, color, b };
-    *g->vtx_wtr++ = (draw_Vtx) { draw_screen_to_gl((f2) { r.max_x, r.max_y }), { uv.max_x, uv.max_y }, color, b };
-    *g->vtx_wtr++ = (draw_Vtx) { draw_screen_to_gl((f2) { r.min_x, r.max_y }), { uv.min_x, uv.max_y }, color, b };
-    *g->vtx_wtr++ = (draw_Vtx) { draw_screen_to_gl((f2) { r.max_x, r.min_y }), { uv.max_x, uv.min_y }, color, b };
+    *g->vtx_wtr++ = (draw_Vtx) { draw_geo_world_to_gl(g, (f2) { r.min_x, r.min_y }), { uv.min_x, uv.min_y }, color, b };
+    *g->vtx_wtr++ = (draw_Vtx) { draw_geo_world_to_gl(g, (f2) { r.max_x, r.max_y }), { uv.max_x, uv.max_y }, color, b };
+    *g->vtx_wtr++ = (draw_Vtx) { draw_geo_world_to_gl(g, (f2) { r.min_x, r.max_y }), { uv.min_x, uv.max_y }, color, b };
+    *g->vtx_wtr++ = (draw_Vtx) { draw_geo_world_to_gl(g, (f2) { r.max_x, r.min_y }), { uv.max_x, uv.min_y }, color, b };
 
     *g->idx_wtr++ = i + 0;
     *g->idx_wtr++ = i + 1;
@@ -152,10 +177,40 @@ void draw_geo_rect(
     };
 
     draw_Idx i = draw_geo_vtx_count(g);
-    *g->vtx_wtr++ = (draw_Vtx) { draw_screen_to_gl((f2) { r.min_x, r.min_y }), { 0, 0 }, color, b };
-    *g->vtx_wtr++ = (draw_Vtx) { draw_screen_to_gl((f2) { r.max_x, r.max_y }), { 0, 0 }, color, b };
-    *g->vtx_wtr++ = (draw_Vtx) { draw_screen_to_gl((f2) { r.min_x, r.max_y }), { 0, 0 }, color, b };
-    *g->vtx_wtr++ = (draw_Vtx) { draw_screen_to_gl((f2) { r.max_x, r.min_y }), { 0, 0 }, color, b };
+    *g->vtx_wtr++ = (draw_Vtx) { draw_geo_world_to_gl(g, (f2) { r.min_x, r.min_y }), { 0, 0 }, color, b };
+    *g->vtx_wtr++ = (draw_Vtx) { draw_geo_world_to_gl(g, (f2) { r.max_x, r.max_y }), { 0, 0 }, color, b };
+    *g->vtx_wtr++ = (draw_Vtx) { draw_geo_world_to_gl(g, (f2) { r.min_x, r.max_y }), { 0, 0 }, color, b };
+    *g->vtx_wtr++ = (draw_Vtx) { draw_geo_world_to_gl(g, (f2) { r.max_x, r.min_y }), { 0, 0 }, color, b };
+
+    *g->idx_wtr++ = i + 0;
+    *g->idx_wtr++ = i + 1;
+    *g->idx_wtr++ = i + 2;
+    *g->idx_wtr++ = i + 1;
+    *g->idx_wtr++ = i + 0;
+    *g->idx_wtr++ = i + 3;
+}
+
+void draw_geo_circle(
+    draw_Geo *g,
+    f2 pos,
+    float radius,
+    Color color
+) {
+    draw_geo_ensure_can_hold_rects(g, 1);
+
+    draw_Vtx_Bytes b = {
+        .variant = draw_ShaderVariant_Solid,
+    };
+
+    draw_Idx i = draw_geo_vtx_count(g);
+    float min_x = pos.x - radius;
+    float min_y = pos.y - radius;
+    float max_x = pos.x + radius;
+    float max_y = pos.y + radius;
+    *g->vtx_wtr++ = (draw_Vtx) { draw_geo_world_to_gl(g, (f2) { min_x, min_y }), { 0, 0 }, color, b };
+    *g->vtx_wtr++ = (draw_Vtx) { draw_geo_world_to_gl(g, (f2) { max_x, max_y }), { 0, 0 }, color, b };
+    *g->vtx_wtr++ = (draw_Vtx) { draw_geo_world_to_gl(g, (f2) { min_x, max_y }), { 0, 0 }, color, b };
+    *g->vtx_wtr++ = (draw_Vtx) { draw_geo_world_to_gl(g, (f2) { max_x, min_y }), { 0, 0 }, color, b };
 
     *g->idx_wtr++ = i + 0;
     *g->idx_wtr++ = i + 1;
@@ -201,8 +256,8 @@ void draw_geo_str_ui(
         float max_px_x = x + l->size_x*scale;
         float max_px_y = y + l->size_y*scale;
 
-        f2 min_pos = draw_screen_to_gl((f2) { min_px_x, min_px_y });
-        f2 max_pos = draw_screen_to_gl((f2) { max_px_x, max_px_y });
+        f2 min_pos = draw_geo_world_to_gl(g, (f2) { min_px_x, min_px_y });
+        f2 max_pos = draw_geo_world_to_gl(g, (f2) { max_px_x, max_px_y });
 
         draw_Idx i = draw_geo_vtx_count(g);
         draw_Vtx_Bytes b = {
@@ -363,12 +418,21 @@ void draw_frame_start(Color bg) {
         .swapchain = sglue_swapchain()
     });
     sg_apply_pipeline(draw.pip);
-
-    draw_geo_reset(&draw.geo_default);
 }
 
 void draw_frame_end(void) {
     draw_geo_draw(&draw.geo_default);
+    draw_geo_reset(&draw.geo_default);
+
     sg_end_pass();
     sg_commit();
+}
+
+draw_Rect draw_rect_make_from_top_left(float left, float top, float size) {
+    return (draw_Rect) {
+        .min_x = left,
+        .min_y = top,
+        .max_x = left + size,
+        .max_y = top + size,
+    };
 }

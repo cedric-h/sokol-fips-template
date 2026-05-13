@@ -8,7 +8,7 @@
     x(      options, View_Options      ) \
     x(        title, View_Title        ) \
     x(     camptech, View_CampTech     ) \
-    // x(     worldmap, View_WorldMap     ) \
+    x(     worldmap, View_WorldMap     ) \
     // x(       battle, View_Battle       ) \
     // x(battlevictory, View_BattleVictory) \
     // x(    furniture, View_Furniture    ) \

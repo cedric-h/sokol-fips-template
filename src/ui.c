@@ -1033,21 +1033,21 @@ static void ui_render_cmds(Clay_RenderCommandArray render_cmds, draw_Geo *geo) {
 }
 
 void ui_input(sapp_event* ev) {
-    switch(ev->type){
-    case SAPP_EVENTTYPE_MOUSE_MOVE:
-        ui.input.mouse_pos.x = ev->mouse_x / sapp_dpi_scale();
-        ui.input.mouse_pos.y = ev->mouse_y / sapp_dpi_scale();
-        break;
-    case SAPP_EVENTTYPE_MOUSE_DOWN:
-        ui.input.mouse_down = true;
-        break;
-    case SAPP_EVENTTYPE_MOUSE_UP:
-        ui.input.mouse_down = false;
-        break;
-    case SAPP_EVENTTYPE_MOUSE_SCROLL:
-        ui.input.scroll.x += ev->scroll_x;
-        ui.input.scroll.y += ev->scroll_y;
-        break;
-    default: break;
+    switch(ev->type) {
+        case SAPP_EVENTTYPE_MOUSE_MOVE:
+            ui.input.mouse_pos.x = ev->mouse_x / sapp_dpi_scale();
+            ui.input.mouse_pos.y = ev->mouse_y / sapp_dpi_scale();
+            break;
+        case SAPP_EVENTTYPE_MOUSE_DOWN:
+            ui.input.mouse_down = true;
+            break;
+        case SAPP_EVENTTYPE_MOUSE_UP:
+            ui.input.mouse_down = false;
+            break;
+        case SAPP_EVENTTYPE_MOUSE_SCROLL:
+            ui.input.scroll.x += ev->scroll_x;
+            ui.input.scroll.y += ev->scroll_y;
+            break;
+        default: break;
     }
 }

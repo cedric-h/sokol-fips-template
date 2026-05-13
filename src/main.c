@@ -33,8 +33,9 @@ static void init(void) {
     guy_system_init();
     ui_init();
 
-    game.view = View_Options;
+    game.view = View_WorldMap;
     // save.run.coin = 185;
+    save.run.furniture[0] = save_Furniture_Telescope;
     // save.run.furniture[0] = save_Furniture_Bed;
     // {
     //     guy_Guy mom = guy_from_race(guy_Race_Moai, guy_Sex_Female);
@@ -77,23 +78,23 @@ start:
             case view_TransitionKind_Options: game.view = View_Options; break;
             case view_TransitionKind_CampTech: game.view = View_CampTech; break;
 
-        //     case view_TransitionKind_StartRun: {
-        //         uint32_t run_id = save.run.id;
-        //         memset(&save.run, 0, sizeof(save.run));
-        //         save.run.id = run_id + 1;
-        //         save.run.coin = 0;
-        //         save.run.food = 10;
+            case view_TransitionKind_StartRun: {
+                uint32_t run_id = save.run.id;
+                memset(&save.run, 0, sizeof(save.run));
+                save.run.id = run_id + 1;
+                save.run.coin = 0;
+                save.run.food = 10;
 
-        //         // save.run.furniture[0] = save_Furniture_Telescope;
+                // save.run.furniture[0] = save_Furniture_Telescope;
 
-        //         for (int i = 0; i < 3; i++) {
-        //             guy_Race race = guy_Race_Human;
-        //             guy_Sex sex = i%2 ? guy_Sex_Male : guy_Sex_Female;
-        //             save.run.guys[i] = guy_from_race(race, sex);
-        //         }
+                for (int i = 0; i < 3; i++) {
+                    guy_Race race = guy_Race_Human;
+                    guy_Sex sex = i%2 ? guy_Sex_Male : guy_Sex_Female;
+                    save.run.guys[i] = guy_from_race(race, sex);
+                }
 
-        //         game.view = View_WorldMap;
-        //     } break;
+                game.view = View_WorldMap;
+            } break;
 
         //     case view_TransitionKind_StartPocketCamp:
         //     case view_TransitionKind_StartCamp: {
