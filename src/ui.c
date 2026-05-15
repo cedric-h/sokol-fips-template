@@ -187,7 +187,7 @@ void ui_init(void) {
     for (int i = 0; i < ui_Icon_COUNT; i++) {
         ui.icons[i] = tex_init(ui_icon_paths[i]);
     }
-    tex_bake_spritesheet();
+    // tex_bake_spritesheet();
 
     for (int i = 0; i < ui_Sound_COUNT; i++)
         ui.sounds[i] = sound_init(ui_sound_paths[i]);

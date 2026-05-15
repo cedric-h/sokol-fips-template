@@ -186,7 +186,7 @@ tex_Tex tex_init(char *path) {
         tex.sprites[i].img.data = data;
         return (tex_Tex) { i };
     }
-    puts("ran out of tex space!");
+    puts("ran out of tex sprite space!");
     return (tex_Tex) { 0 };
 }
 

@@ -50,6 +50,7 @@ static void init(void) {
     view_handlers[game.view].init((view_Transition) {
         .battle.steps_from_root = 15
     });
+    tex_bake_spritesheet();
 }
 
 static void cleanup(void) {

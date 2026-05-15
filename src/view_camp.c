@@ -45,6 +45,7 @@ static struct {
     double held_item_t;
     int held_item_idx;
     sound_Sound stew[2];
+    tex_Tex orgy_circle;
 
     f2 mouse_pos;
     enum {
@@ -143,6 +144,7 @@ void view_camp_init(view_Transition t) {
 
     view.stew[0] = sound_init("./resources/audio/stew1.wav");
     view.stew[1] = sound_init("./resources/audio/stew2.wav");
+    view.orgy_circle = tex_init("./resources/camp/dagger.png");
 
     /* find items added to the save since last camp and initialize them */
     {
@@ -180,6 +182,7 @@ void view_camp_init(view_Transition t) {
 void view_camp_free(void) {
     sound_free(view.stew[0]);
     sound_free(view.stew[1]);
+    tex_free(view.orgy_circle);
 }
 
 /* construct the "to_fornications" view transition */
@@ -498,14 +501,26 @@ void view_camp_render(void) {
         float y = ORGY_CIRCLE_Y;
         float size = ORGY_CIRCLE_SIZE;
         f2 m = view.mouse_pos;
-        // bool hover = sqrtf((x - m.x)*(x - m.x) + (y - m.y)*(y - m.y)) < (size/2);
-        // hover = hover && (view.held_item_idx != -1);
+        bool hover = sqrtf((x - m.x)*(x - m.x) + (y - m.y)*(y - m.y)) < (size/2);
+        hover = hover && (view.held_item_idx != -1);
         // svg_draw(&svg_orgy_circle, (svg_Rect) {
         //     .min_x = x-size/2,
         //     .min_y = y-size/2,
         //     .max_x = x+size/2,
         //     .max_y = y+size/2,
         // }, (Color) { hover ? 155 : 0, 0, 0, 255 } );
+        draw_geo_tex(
+            draw_geo_default(),
+            view.orgy_circle,
+            (draw_Rect) {
+                .min_x = x-size/2,
+                .min_y = y-size/2,
+                .max_x = x+size/2,
+                .max_y = y+size/2,
+            },
+            (Color) { 255, 255, 255, 255 }
+            // (Color) { hover ? 155 : 0, 0, 0, 255 }
+        );
 
         ui_Font font = ui_Font_Desc;
         draw_geo_str(
