@@ -55,7 +55,6 @@ void main() {
         case 2: {
             frag_color = texture(sampler2D(tex_tex, tex_smp), uv);
             frag_color *= color;
-            frag_color *= frag_color.a;
         }; break;
     }
 }

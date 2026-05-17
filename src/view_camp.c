@@ -518,8 +518,7 @@ void view_camp_render(void) {
                 .max_x = x+size/2,
                 .max_y = y+size/2,
             },
-            (Color) { 255, 255, 255, 255 }
-            // (Color) { hover ? 155 : 0, 0, 0, 255 }
+            (Color) { hover ? 155 : 0, 0, 0, 255 }
         );
 
         ui_Font font = ui_Font_Desc;

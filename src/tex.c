@@ -107,10 +107,13 @@ void tex_bake_spritesheet(void) {
                 size_t dst_y = rect->y + y;
                 size_t dst_i = (ATLAS_SIZE*dst_y + dst_x)*4;
                 size_t src_i = (src->img.size_y*y + x)*4;
-                atlas_data[dst_i + 0] = src->img.data[src_i + 0];
-                atlas_data[dst_i + 1] = src->img.data[src_i + 1];
-                atlas_data[dst_i + 2] = src->img.data[src_i + 2];
-                atlas_data[dst_i + 3] = src->img.data[src_i + 3];
+
+                uint8_t a = src->img.data[src_i + 3];
+                /* store premultiplied */
+                atlas_data[dst_i + 0] = (a * src->img.data[src_i + 0] + 127) / 255;
+                atlas_data[dst_i + 1] = (a * src->img.data[src_i + 1] + 127) / 255;
+                atlas_data[dst_i + 2] = (a * src->img.data[src_i + 2] + 127) / 255;
+                atlas_data[dst_i + 3] = (a * src->img.data[src_i + 3] + 127) / 255;
             }
         free(src->img.data);
     }
