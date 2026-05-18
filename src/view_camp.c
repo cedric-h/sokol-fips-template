@@ -144,7 +144,7 @@ void view_camp_init(view_Transition t) {
 
     view.stew[0] = sound_init("./resources/audio/stew1.wav");
     view.stew[1] = sound_init("./resources/audio/stew2.wav");
-    view.orgy_circle = tex_init("./resources/camp/dagger.png");
+    view.orgy_circle = tex_init("./resources/camp/orgy_circle.png");
 
     /* find items added to the save since last camp and initialize them */
     {
@@ -228,6 +228,7 @@ void view_camp_input(sapp_event *ev) {
             break;
         default: break;
     }
+    ui_input(ev);
 }
 
 view_Transition view_camp_update(uint64_t _) {
@@ -581,7 +582,7 @@ ui_Click ui_small_button_with_cost(
 ) {
     ui_Click ret = false;
 
-    CLAY_AUTO_ID({
+    CLAY(CLAY_IDI("camp_small_button", icon.id), {
         .layout = {
             .layoutDirection = CLAY_TOP_TO_BOTTOM,
             .childGap = 5,

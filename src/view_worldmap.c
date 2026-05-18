@@ -646,7 +646,9 @@ void view_worldmap_render(void) {
                     .min_y = stop->y - size/2,
                     .max_y = stop->y + size/2
                 },
-                (Color) { 255, 255, 255, lerp(255, 0, t) }
+                color_premul_alpha((Color) {
+                    255, 255, 255, lerp(255, 0, t)
+                })
             );
 
             /* hijack this space to draw the moving camp icon */

@@ -84,6 +84,7 @@ fips_begin_app(eab windowed)
     fips_files(src/view_options.c)
     fips_files(src/view_title.c)
     fips_files(src/view_camptech.c)
+    fips_files(src/view_fornications.c)
     fips_files(src/view_worldmap.c)
     fips_files(src/view_camp.c)
 

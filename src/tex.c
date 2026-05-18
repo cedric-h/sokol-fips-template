@@ -25,8 +25,11 @@ typedef enum {
     tex_SpritePhase_NeedsBake,
     tex_SpritePhase_OnSheet,
 } tex_SpritePhase;
+
+#define tex_Sprite_PATH_LEN 200
 typedef struct {
     tex_SpritePhase phase;
+    char path[tex_Sprite_PATH_LEN];
 
     /* valid when OnSheet */
     draw_Rect uv_rect;
@@ -36,6 +39,7 @@ typedef struct {
 } tex_Sprite;
 
 static struct {
+    bool spritesheet_clean;
     tex_Sprite sprites[1024];
 
     sg_view views[SG_MAX_VIEW_BINDSLOTS];
@@ -45,6 +49,9 @@ static struct {
 void tex_system_init(void) {
 }
 void tex_system_bind(sg_bindings *b) {
+    if (!tex.spritesheet_clean)
+        tex_bake_spritesheet();
+
     for (size_t i = 0; i < countof(tex.samplers); i++) {
         if (tex.samplers[i].id == 0) continue;
         b->samplers[i] = tex.samplers[i];
@@ -57,21 +64,26 @@ void tex_system_bind(sg_bindings *b) {
 }
 
 void tex_bake_spritesheet(void) {
+    tex.spritesheet_clean = true;
 
     size_t needs_bake_count = 0;
     for (size_t i = 0; i < countof(tex.sprites); i++)
-        if (tex.sprites[i].phase == tex_SpritePhase_NeedsBake) {
+        if (tex.sprites[i].phase == tex_SpritePhase_NeedsBake ||
+            tex.sprites[i].phase == tex_SpritePhase_OnSheet) {
             needs_bake_count += 1;
         }
 
     stbrp_rect *rects = malloc(needs_bake_count * sizeof(stbrp_rect));
     size_t rects_i = 0;
 
+    size_t pad = 12;
+
     for (size_t i = 0; i < countof(tex.sprites); i++)
-        if (tex.sprites[i].phase == tex_SpritePhase_NeedsBake) {
+        if (tex.sprites[i].phase == tex_SpritePhase_NeedsBake ||
+            tex.sprites[i].phase == tex_SpritePhase_OnSheet) {
             rects[rects_i].id = i;
-            rects[rects_i].w = tex.sprites[i].img.size_x;
-            rects[rects_i].h = tex.sprites[i].img.size_y;
+            rects[rects_i].w = tex.sprites[i].img.size_x + pad*2;
+            rects[rects_i].h = tex.sprites[i].img.size_y + pad*2;
             rects_i++;
         }
 
@@ -87,7 +99,8 @@ void tex_bake_spritesheet(void) {
         stbrp_rect *rect = rects + i;
         tex_Sprite *src = tex.sprites + rect->id;
 
-        if (src->phase != tex_SpritePhase_NeedsBake)
+        if (!(tex.sprites[i].phase == tex_SpritePhase_NeedsBake ||
+              tex.sprites[i].phase == tex_SpritePhase_OnSheet))
             continue;
 
         if (!rect->was_packed) {
@@ -96,15 +109,19 @@ void tex_bake_spritesheet(void) {
         }
 
         src->phase = tex_SpritePhase_OnSheet;
-        src->uv_rect.min_x = (float)(rect->x          ) / (float)ATLAS_SIZE;
-        src->uv_rect.min_y = (float)(rect->y          ) / (float)ATLAS_SIZE;
-        src->uv_rect.max_x = (float)(rect->x + rect->w) / (float)ATLAS_SIZE;
-        src->uv_rect.max_y = (float)(rect->y + rect->h) / (float)ATLAS_SIZE;
+        size_t rx = rect->x + pad;
+        size_t ry = rect->y + pad;
+        size_t rw = rect->w - pad*2;
+        size_t rh = rect->h - pad*2;
+        src->uv_rect.min_x = (float)(rx     ) / (float)ATLAS_SIZE;
+        src->uv_rect.min_y = (float)(ry     ) / (float)ATLAS_SIZE;
+        src->uv_rect.max_x = (float)(rx + rw) / (float)ATLAS_SIZE;
+        src->uv_rect.max_y = (float)(ry + rh) / (float)ATLAS_SIZE;
 
         for (size_t y = 0; y < src->img.size_y; y++)
             for (size_t x = 0; x < src->img.size_x; x++) {
-                size_t dst_x = rect->x + x;
-                size_t dst_y = rect->y + y;
+                size_t dst_x = rx + x;
+                size_t dst_y = ry + y;
                 size_t dst_i = (ATLAS_SIZE*dst_y + dst_x)*4;
                 size_t src_i = (src->img.size_y*y + x)*4;
 
@@ -115,7 +132,7 @@ void tex_bake_spritesheet(void) {
                 atlas_data[dst_i + 2] = (a * src->img.data[src_i + 2] + 127) / 255;
                 atlas_data[dst_i + 3] = (a * src->img.data[src_i + 3] + 127) / 255;
             }
-        free(src->img.data);
+        // free(src->img.data); can't; we re-atlas a lot right now
     }
 
     free(rects);
@@ -162,6 +179,11 @@ void tex_system_free(void) {
 
 tex_Tex tex_init(char *path) {
     if (!path[0]) return (tex_Tex) { 0 };
+    for (size_t i = 1; i < countof(tex.sprites); i++) {
+        if (!tex.sprites[i].phase) continue;
+        if (strcmp(tex.sprites[i].path, path) == 0)
+            return (tex_Tex) { i };
+    }
 
     int size_x, size_y, n;
     uint8_t *data;
@@ -181,9 +203,13 @@ tex_Tex tex_init(char *path) {
         n = 4;
     }
 
+    tex.spritesheet_clean = false;
+
     for (size_t i = 1; i < countof(tex.sprites); i++) {
         if (tex.sprites[i].phase) continue;
+        tex.sprites[i] = (tex_Sprite) { 0 };
         tex.sprites[i].phase = tex_SpritePhase_NeedsBake;
+        strlcpy(tex.sprites[i].path, path, tex_Sprite_PATH_LEN);
         tex.sprites[i].img.size_x = size_x;
         tex.sprites[i].img.size_y = size_y;
         tex.sprites[i].img.data = data;

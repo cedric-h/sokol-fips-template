@@ -31,6 +31,12 @@ typedef struct { char *str; size_t len; } String;
 #define STRING(x) ((String) { x, sizeof(x)-1 })
 
 typedef struct { uint8_t r, g, b, a; } Color;
+static Color color_premul_alpha(Color c) {
+    return (Color) { (c.r * c.a + 127) / 255,
+                     (c.g * c.a + 127) / 255,
+                     (c.b * c.a + 127) / 255,
+                     (c.a * c.a + 127) / 255 };
+}
 
 static float lerpf(float start, float end, float amount) {
     return start + amount*(end - start);

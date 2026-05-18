@@ -310,7 +310,7 @@ ui_Click ui_big_button(Clay_String text, tex_Tex icon) {
             .color = {0, 0, 0, 255}
         },
         .backgroundColor = Clay_Hovered()
-            ? (Clay_Color) { 128, 128, 128, 128 }
+            ? (Clay_Color) { 208, 208, 208, 255 }
             : (Clay_Color) { 255, 255, 255, 255 },
         .cornerRadius = CLAY_CORNER_RADIUS(6),
         .layout = {
@@ -375,9 +375,19 @@ ui_Click ui_small_button(tex_Tex icon, bool disabled) {
         .icon = icon,
         .disabled = disabled,
         .clr_normal = (Color) { 255, 255, 255, 255 },
-        .clr_hovered = (Color) { 128, 128, 128, 128 },
+        .clr_disabled = (Color) { 28, 28, 28, 155 },
+        .clr_hovered = (Color) { 208, 208, 208, 255 },
     });
 }
+
+static Color ui_small_button_bg_color(ui_SmallButton_Config *cfg) {
+    Color bg = cfg->clr_normal;
+    if (Clay_Hovered()) bg = cfg->clr_hovered;
+    if (cfg->disabled) bg = cfg->clr_disabled;
+
+    return bg;
+}
+
 ui_Click ui_small_button_ex(ui_SmallButton_Config cfg) {
     tex_Tex icon = cfg.icon;
     bool disabled = cfg.disabled;
@@ -385,7 +395,7 @@ ui_Click ui_small_button_ex(ui_SmallButton_Config cfg) {
 
     Clay_Color enabled_black = 
         (disabled)
-            ? (Clay_Color) { 120, 120, 120, 120 }
+            ? (Clay_Color) {   0,   0,   0, 120 }
             : (Clay_Color) {   0,   0,   0, 255 }
         ;
 
@@ -394,9 +404,7 @@ ui_Click ui_small_button_ex(ui_SmallButton_Config cfg) {
             .width = CLAY_BORDER_OUTSIDE(4),
             .color = enabled_black,
         },
-        .backgroundColor = (!disabled && Clay_Hovered())
-            ? ui_clay_color_from_color(cfg.clr_hovered)
-            : ui_clay_color_from_color(cfg.clr_normal),
+        .backgroundColor = ui_clay_color_from_color(ui_small_button_bg_color(&cfg)),
         .cornerRadius = CLAY_CORNER_RADIUS(6),
         .layout = {
             .padding = { 16, 16, 16, 16 },

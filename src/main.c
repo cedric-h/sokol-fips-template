@@ -33,8 +33,8 @@ static void init(void) {
     guy_system_init();
     ui_init();
 
-    game.view = View_Camp;
-    // save.run.coin = 185;
+    game.view = View_WorldMap;
+    save.run.food = 18;
     save.run.furniture[0] = save_Furniture_Telescope;
     // save.run.furniture[0] = save_Furniture_Bed;
     {
@@ -50,7 +50,6 @@ static void init(void) {
     view_handlers[game.view].init((view_Transition) {
         .battle.steps_from_root = 15
     });
-    tex_bake_spritesheet();
 }
 
 static void cleanup(void) {
@@ -108,10 +107,10 @@ start:
                 game.view = View_WorldMap;
             } break;
 
-        //     case view_TransitionKind_StartPocketCamp:
-        //     case view_TransitionKind_StartCamp: {
-        //         game.view = View_Camp;
-        //     } break;
+            case view_TransitionKind_StartPocketCamp:
+            case view_TransitionKind_StartCamp: {
+                game.view = View_Camp;
+            } break;
         //     case view_TransitionKind_StartBattle: {
         //         game.view = View_Battle;
         //     } break;
@@ -128,18 +127,18 @@ start:
         //         game.view = View_Furniture;
         //     } break;
 
-        //     case view_TransitionKind_CampFornications: {
-        //         game.view = View_Fornications;
-        //     }; break;
+            case view_TransitionKind_CampFornications: {
+                game.view = View_Fornications;
+            }; break;
 
-        //     case view_TransitionKind_BackToCampFromFornications: {
-        //         game.view = View_Camp;
-        //     }; break;
+            case view_TransitionKind_BackToCampFromFornications: {
+                game.view = View_Camp;
+            }; break;
 
-        //     case view_TransitionKind_BackToWorldMapFromPocketCamp:
-        //     case view_TransitionKind_BackToWorldMap: {
-        //         game.view = View_WorldMap;
-        //     } break;
+            case view_TransitionKind_BackToWorldMapFromPocketCamp:
+            case view_TransitionKind_BackToWorldMap: {
+                game.view = View_WorldMap;
+            } break;
 
         };
 

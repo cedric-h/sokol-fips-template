@@ -107,7 +107,7 @@ ui_Click ui_big_button(Clay_String text, tex_Tex icon);
 typedef struct {
     tex_Tex icon;
     bool disabled;
-    Color clr_normal, clr_hovered;
+    Color clr_normal, clr_hovered, clr_disabled;
 } ui_SmallButton_Config;
 ui_Click ui_small_button(tex_Tex icon, bool disabled);
 ui_Click ui_small_button_ex(ui_SmallButton_Config config);
