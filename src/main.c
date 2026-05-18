@@ -33,9 +33,9 @@ static void init(void) {
     guy_system_init();
     ui_init();
 
-    game.view = View_WorldMap;
-    save.run.food = 18;
-    save.run.furniture[0] = save_Furniture_Telescope;
+    game.view = View_Title;
+    // save.run.food = 18;
+    // save.run.furniture[0] = save_Furniture_Telescope;
     // save.run.furniture[0] = save_Furniture_Bed;
     {
         rand_seed(694838);
@@ -111,21 +111,21 @@ start:
             case view_TransitionKind_StartCamp: {
                 game.view = View_Camp;
             } break;
-        //     case view_TransitionKind_StartBattle: {
-        //         game.view = View_Battle;
-        //     } break;
+            case view_TransitionKind_StartBattle: {
+                game.view = View_Battle;
+            } break;
 
-        //     case view_TransitionKind_BattleDefeat: { 
-        //         game.view = View_BattleDefeat;
-        //     } break;
+            case view_TransitionKind_BattleDefeat: { 
+                game.view = View_BattleDefeat;
+            } break;
 
-        //     case view_TransitionKind_BattleVictory: { 
-        //         game.view = View_BattleVictory;
-        //     } break;
+            case view_TransitionKind_BattleVictory: { 
+                game.view = View_BattleVictory;
+            } break;
 
-        //     case view_TransitionKind_BuyFurniture: {
-        //         game.view = View_Furniture;
-        //     } break;
+            case view_TransitionKind_BuyFurniture: {
+                game.view = View_Furniture;
+            } break;
 
             case view_TransitionKind_CampFornications: {
                 game.view = View_Fornications;

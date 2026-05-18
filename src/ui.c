@@ -296,7 +296,7 @@ void ui_render(Clay_RenderCommandArray render_cmds, draw_Geo *g) {
                 .max_x = x + item->size,
                 .max_y = y + item->size,
             },
-            (Color) { 255, 255, 255, 255*a }
+            color_premul_alpha((Color) { 255, 255, 255, 255*a })
         );
     }
 }
@@ -374,9 +374,9 @@ ui_Click ui_small_button(tex_Tex icon, bool disabled) {
     return ui_small_button_ex((ui_SmallButton_Config) {
         .icon = icon,
         .disabled = disabled,
-        .clr_normal = (Color) { 255, 255, 255, 255 },
+        .clr_normal = (Color) { 220, 220, 220, 220 },
         .clr_disabled = (Color) { 28, 28, 28, 155 },
-        .clr_hovered = (Color) { 208, 208, 208, 255 },
+        .clr_hovered = (Color) { 190, 190, 190, 220 },
     });
 }
 
@@ -393,16 +393,10 @@ ui_Click ui_small_button_ex(ui_SmallButton_Config cfg) {
     bool disabled = cfg.disabled;
     ui_Click ret = ui_Click_NONE;
 
-    Clay_Color enabled_black = 
-        (disabled)
-            ? (Clay_Color) {   0,   0,   0, 120 }
-            : (Clay_Color) {   0,   0,   0, 255 }
-        ;
-
     CLAY(CLAY_IDI("ui_small_button", icon.id), {
         .border = {
             .width = CLAY_BORDER_OUTSIDE(4),
-            .color = enabled_black,
+            .color = (Clay_Color) { 0, 0, 0, 255 },
         },
         .backgroundColor = ui_clay_color_from_color(ui_small_button_bg_color(&cfg)),
         .cornerRadius = CLAY_CORNER_RADIUS(6),

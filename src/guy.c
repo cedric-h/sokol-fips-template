@@ -936,12 +936,12 @@ void guy_draw_ex(guy_DrawEx ex) {
     } else {
         /* we need to account for how some layers may exceed 600px,
          * so everything needs to be shrunk a bit to keep it in bounds */
-        // float max_size = 1.0f;
-        // for (guy_Layer i = 0; i < guy_Layer_COUNT; i++) {
-        //     float w = guy_system.assets[layer_assets[i]].width;
-        //     max_size = max(max_size, w / 600.0f);
-        // }
-        // ex.size /= max_size;
+        float max_size = 1.0f;
+        for (guy_Layer i = 0; i < guy_Layer_COUNT; i++) {
+            float w = tex_size_x(guy_system.assets[layer_assets[i]]);
+            max_size = max(max_size, w / 600.0f);
+        }
+        ex.size /= max_size;
     }
 
     guy_DrawCtx ctx = {

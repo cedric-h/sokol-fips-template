@@ -99,8 +99,8 @@ void tex_bake_spritesheet(void) {
         stbrp_rect *rect = rects + i;
         tex_Sprite *src = tex.sprites + rect->id;
 
-        if (!(tex.sprites[i].phase == tex_SpritePhase_NeedsBake ||
-              tex.sprites[i].phase == tex_SpritePhase_OnSheet))
+        if (!(src->phase == tex_SpritePhase_NeedsBake ||
+              src->phase == tex_SpritePhase_OnSheet))
             continue;
 
         if (!rect->was_packed) {
@@ -185,11 +185,11 @@ tex_Tex tex_init(char *path) {
             return (tex_Tex) { i };
     }
 
-    int size_x, size_y, n;
-    uint8_t *data;
     char full_path[200] = {0};
     snprintf(full_path, sizeof(full_path), EXE_PATH"/%s", path);
-    data = stbi_load(full_path, &size_x, &size_y, &n, 0);
+
+    int size_x, size_y, n;
+    uint8_t *data = stbi_load(full_path, &size_x, &size_y, &n, 0);
     if (data == NULL || n != 4) {
         printf("[%s] stbi_load failed: %s\n", path, stbi_failure_reason());
         if (n != 4) {

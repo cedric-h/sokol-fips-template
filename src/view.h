@@ -11,10 +11,10 @@
     x(     worldmap, View_WorldMap     ) \
     x(         camp, View_Camp         ) \
     x( fornications, View_Fornications ) \
-    // x(       battle, View_Battle       ) \
-    // x(battlevictory, View_BattleVictory) \
-    // x(    furniture, View_Furniture    ) \
-    // x( battledefeat, View_BattleDefeat ) \
+    x(       battle, View_Battle       ) \
+    x(battlevictory, View_BattleVictory) \
+    x( battledefeat, View_BattleDefeat ) \
+    x( buyfurniture, View_Furniture    ) \
     // x(guycustomizer, View_GuyCustomizer) \
 
 

@@ -10,7 +10,7 @@
 #include "draw.h"
 
 #define map_CAMP_MOVE_ANIM_DURATION 0.5
-#define map_SKIP_BATTLES true
+#define map_SKIP_BATTLES false
 #define map_FREE_CAMERA false
 
 typedef enum {

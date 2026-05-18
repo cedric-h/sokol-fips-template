@@ -87,6 +87,10 @@ fips_begin_app(eab windowed)
     fips_files(src/view_fornications.c)
     fips_files(src/view_worldmap.c)
     fips_files(src/view_camp.c)
+    fips_files(src/view_battle.c)
+    fips_files(src/view_battlevictory.c)
+    fips_files(src/view_battledefeat.c)
+    fips_files(src/view_buyfurniture.c)
 
     fips_deps(sokol)
 
